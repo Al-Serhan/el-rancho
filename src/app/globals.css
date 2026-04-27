@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-terracotta-400: #E2725B;
+  --color-terracotta-500: #d65a41;
+  --color-terracotta-600: #b54730;
+
+  --color-sand-300: #f8c89b;
+  --color-sand-400: #F4A460;
+  --color-sand-500: #e38d45;
+
+  --color-rust-800: #4a2118;
+  --color-rust-900: #30140f;
+
+  --font-pixel: var(--font-vt323);
+  --font-heading: var(--font-press-start);
+}
+
+@layer base {
+  body {
+    @apply font-pixel text-xl leading-relaxed;
+    background-color: theme('color.rust-900');
+    color: theme('color.sand-400');
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading uppercase;
+    color: theme('color.terracotta-400');
+    text-shadow: 2px 2px 0 theme('color.rust-900');
+  }
+
+  .pixelated {
+    image-rendering: pixelated;
+  }
+}
+
+/* UI Elements */
+@layer components {
+  .btn-pixel {
+    @apply inline-block font-heading text-sm uppercase px-4 py-3 border-4 border-b-8 border-r-8 border-terracotta-600 bg-terracotta-400 text-rust-900 hover:bg-terracotta-500 hover:border-terracotta-600 active:border-4 active:mt-1 active:ml-1 transition-all;
+    image-rendering: pixelated;
+  }
+  
+  .panel-pixel {
+    @apply border-4 border-sand-400 bg-rust-800 p-6 shadow-[8px_8px_0_0_theme('color.rust-900')];
+  }
+}
