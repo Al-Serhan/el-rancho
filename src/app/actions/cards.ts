@@ -7,12 +7,22 @@ import { revalidatePath } from 'next/cache';
 const FRONTIER_LEGENDS = [
   { name: 'Tumbleweed', rarity: 'Common', special_attribute: 'Agility +1', description: 'Blows where the wind takes it. Good for a quick getaway.', image_url: '/cards/tumbleweed.svg' },
   { name: 'Rusty Revolver', rarity: 'Common', special_attribute: 'Attack +2', description: 'It jams on occasion, but it is better than throwing rocks.', image_url: '/cards/rusty-revolver.svg' },
+  { name: 'Old Boot', rarity: 'Common', special_attribute: 'Stamina +1', description: 'Found in a dry creek bed. Smells like 1849.', image_url: '/cards/old-boot.svg' },
+  { name: 'Iron Spur', rarity: 'Common', special_attribute: 'Speed +2', description: 'Makes a satisfying jingle with every step.', image_url: '/cards/iron-spur.svg' },
   { name: 'Cactus Juice', rarity: 'Uncommon', special_attribute: 'Heals 15 HP', description: 'Tastes terrible, but stops the bleeding.', image_url: '/cards/cactus-juice.svg' },
   { name: 'Bandit Mask', rarity: 'Uncommon', special_attribute: 'Stealth +3', description: 'Hides your identity from the law and the flies.', image_url: '/cards/bandit-mask.svg' },
+  { name: 'Snake Skin', rarity: 'Uncommon', special_attribute: 'Poison Resist', description: 'Shed by a rattler near the O.K. Corral.', image_url: '/cards/snake-skin.svg' },
+  { name: 'Lucky Coin', rarity: 'Uncommon', special_attribute: 'Luck +5', description: 'Heads you win, tails you live to fight another day.', image_url: '/cards/lucky-coin.svg' },
   { name: 'Sheriff Star', rarity: 'Rare', special_attribute: 'Authority +5', description: 'Commands respect across the county lines.', image_url: '/cards/sheriff-star.svg' },
   { name: 'Stolen Gold Ingot', rarity: 'Rare', special_attribute: 'Value +100', description: 'Heavy, shiny, and highly illegal.', image_url: '/cards/gold-ingot.svg' },
+  { name: 'Wanted Poster', rarity: 'Rare', special_attribute: 'Bounty +50', description: 'Dead or Alive. Mostly Dead.', image_url: '/cards/wanted-poster.svg' },
+  { name: 'Silver Bullet', rarity: 'Rare', special_attribute: 'Werewolf Bane', description: 'Expensive to fire, but essential for the full moon.', image_url: '/cards/silver-bullet.svg' },
   { name: 'Ghost Town Map', rarity: 'Epic', special_attribute: 'Unlocks Secrets', description: 'X marks a spot that hasn’t existed for fifty years.', image_url: '/cards/ghost-town-map.svg' },
-  { name: 'Calamity Jane Rifle', rarity: 'Legendary', special_attribute: 'Attack +20, Piercing', description: 'Legend says she never missed a shot. Now it’s yours.', image_url: '/cards/calamity-jane-rifle.svg' },
+  { name: 'Desert Rose', rarity: 'Epic', special_attribute: 'Charisma +10', description: 'A rare bloom that survives the harshest winters.', image_url: '/cards/desert-rose.svg' },
+  { name: 'Ace of Spades', rarity: 'Epic', special_attribute: 'Instant Win', description: 'The death card. Use it wisely.', image_url: '/cards/ace-of-spades.svg' },
+  { name: 'Buffalo Skull', rarity: 'Epic', special_attribute: 'Intimidation +8', description: 'A bleached reminder of the old ways.', image_url: '/cards/buffalo-skull.svg' },
+  { name: 'Dynamite', rarity: 'Epic', special_attribute: 'Blast Damage 50', description: 'Handle with care. Or don’t. We aren’t your parents.', image_url: '/cards/dynamite.svg' },
+  { name: 'Calamity Jane Rifle', rarity: 'Legendary', special_attribute: 'Attack +20', description: 'Legend says she never missed a shot. Now it’s yours.', image_url: '/cards/calamity-jane-rifle.svg' },
   { name: 'The Saloon Clanker', rarity: 'Legendary', special_attribute: 'Automation +50', description: 'An AI bot from Sheriff Jones’ Server. It calculates probabilities faster than you can draw.', image_url: '/cards/saloon-clanker.svg' },
 ];
 

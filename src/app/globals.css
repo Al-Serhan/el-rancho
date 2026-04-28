@@ -44,4 +44,12 @@
   .panel-pixel {
     @apply border-4 border-sand-400 bg-rust-800 p-6 shadow-[8px_8px_0_0_theme('color.rust-900')];
   }
+
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.02); }
+  }
+  .animate-pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
 }
