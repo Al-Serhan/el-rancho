@@ -10,6 +10,8 @@ export default function Navbar() {
     { name: 'Home', href: '/dashboard' },
     { name: 'Trading Post', href: '/dashboard/trades' },
     { name: 'Collection', href: '/dashboard/collection' },
+    { name: 'Poker', href: '/dashboard/poker' },
+    { name: 'Leaderboard', href: '/dashboard/leaderboard' },
     { name: 'Bounties', href: '#', disabled: true },
   ];
 

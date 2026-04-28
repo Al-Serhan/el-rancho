@@ -1,5 +1,19 @@
 # Change Log
 
+## [2026-04-28] - Poker Game & Leaderboard
+
+### Added
+- **Database Migration**: Added `gold_coins` column to `profiles` (default 100).
+- **Poker Room**: New 5-Card Draw poker minigame at `/dashboard/poker`.
+- **Leaderboard**: Public ranking of top cowboys by gold at `/dashboard/leaderboard`.
+- **Server Action**: Secure `resolvePokerGame` action to handle bets and payouts.
+- **Components**: `PokerTable` client component for game state management.
+
+### Changed
+- **Dashboard**: Added "Poker Room" and "Leaderboard" tiles. Displaying current gold in sidebar.
+- **Navbar**: Integrated Poker and Leaderboard tabs.
+- **Type Safety**: Updated `Profile` interface with `gold_coins`.
+
 ## [2026-04-27] - Card Trading System Implementation
 
 ### Added

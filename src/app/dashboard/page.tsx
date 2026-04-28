@@ -21,6 +21,7 @@ export default async function Dashboard() {
   const role = profile?.role || 'Farmer';
   const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || '/default-avatar.png';
   const username = profile?.username || user.user_metadata?.full_name || 'Anonymous Cowboy';
+  const gold = profile?.gold_coins ?? 100;
 
   return (
     <main className="max-w-6xl mx-auto p-4 md:p-8 grid lg:grid-cols-12 gap-8 animate-in fade-in duration-500">
@@ -40,6 +41,10 @@ export default async function Dashboard() {
           <div>
             <h3 className="text-lg">{username}</h3>
             <p className="text-terracotta-400 uppercase text-sm mt-1">{role}</p>
+          </div>
+          <div className="bg-rust-900/50 p-2 border-2 border-sand-400/20 rounded">
+            <p className="text-xs text-sand-500 uppercase font-heading text-[10px]">Gold Coins</p>
+            <p className="text-xl text-sand-300 font-heading">💰 {gold}</p>
           </div>
           <form action="/api/auth/signout" method="POST" className="pt-2">
             <button type="submit" className="text-xs text-sand-500 hover:text-terracotta-400 transition-colors uppercase underline">
@@ -74,6 +79,22 @@ export default async function Dashboard() {
               <p className="text-xs text-sand-500 text-center px-4">Admire your growing stash of rare artifacts and spurs.</p>
             </div>
           </Link>
+
+          <Link href="/dashboard/poker" className="group">
+            <div className="panel-pixel h-full hover:border-terracotta-500 transition-colors flex flex-col items-center justify-center py-10 space-y-4">
+              <div className="text-4xl group-hover:scale-110 transition-transform">🎲</div>
+              <h2 className="group-hover:text-terracotta-500 transition-colors">Poker Room</h2>
+              <p className="text-xs text-sand-500 text-center px-4">Bet your gold in a classic game of 5-Card Draw.</p>
+            </div>
+          </Link>
+
+          <Link href="/dashboard/leaderboard" className="group">
+            <div className="panel-pixel h-full hover:border-sand-400 transition-colors flex flex-col items-center justify-center py-10 space-y-4">
+              <div className="text-4xl group-hover:scale-110 transition-transform">🥇</div>
+              <h2 className="group-hover:text-sand-400 transition-colors">Leaderboard</h2>
+              <p className="text-xs text-sand-500 text-center px-4">See who has the heaviest satchel in the West.</p>
+            </div>
+          </Link>
         </div>
 
         <div className="panel-pixel">
@@ -83,7 +104,7 @@ export default async function Dashboard() {
           <div className="space-y-4">
             <div className="border-l-4 border-sand-400 pl-4 py-1">
               <p className="text-xs text-sand-500">APRIL 28, 2026</p>
-              <p className="text-sm">New "Golden Lasso" cards spotted in the Southern Canyons. Keep an eye out!</p>
+              <p className="text-sm">New &quot;Golden Lasso&quot; cards spotted in the Southern Canyons. Keep an eye out!</p>
             </div>
             <div className="border-l-4 border-rust-900 pl-4 py-1">
               <p className="text-xs text-sand-500">APRIL 27, 2026</p>

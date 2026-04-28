@@ -3,6 +3,7 @@ export interface Profile {
   username: string | null;
   avatar_url: string | null;
   role: string | null;
+  gold_coins: number;
 }
 
 export interface Card {
