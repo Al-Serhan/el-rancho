@@ -24,6 +24,16 @@ const FRONTIER_LEGENDS = [
   { name: 'Dynamite', rarity: 'Epic', special_attribute: 'Blast Damage 50', description: 'Handle with care. Or don’t. We aren’t your parents.', image_url: '/cards/dynamite.svg' },
   { name: 'Calamity Jane Rifle', rarity: 'Legendary', special_attribute: 'Attack +20', description: 'Legend says she never missed a shot. Now it’s yours.', image_url: '/cards/calamity-jane-rifle.svg' },
   { name: 'The Saloon Clanker', rarity: 'Legendary', special_attribute: 'Automation +50', description: 'An AI bot from Sheriff Jones’ Server. It calculates probabilities faster than you can draw.', image_url: '/cards/saloon-clanker.svg' },
+  { name: 'Golden Key', rarity: 'Legendary', special_attribute: 'Unlocks All', description: 'Rumored to open the forbidden vault beneath the old bank.', image_url: '/cards/golden-key.svg' },
+  { name: 'Tomahawk', rarity: 'Epic', special_attribute: 'Precision +15', description: 'Balanced for throwing, carved with ancient protective runes.', image_url: '/cards/tomahawk.svg' },
+  { name: 'Peace Pipe', rarity: 'Epic', special_attribute: 'Diplomacy +20', description: 'Settles disputes without a single drop of blood being spilled.', image_url: '/cards/peace-pipe.svg' },
+  { name: 'Bear Claw', rarity: 'Epic', special_attribute: 'Strength +12', description: 'Trophy from a beast that once ruled the high Sierras.', image_url: '/cards/bear-claw.svg' },
+  { name: 'Desert Falcon', rarity: 'Epic', special_attribute: 'Scouting +10', description: 'Sees every movement from miles above the canyon floor.', image_url: '/cards/desert-falcon.svg' },
+  { name: 'Tanned Hide', rarity: 'Uncommon', special_attribute: 'Defense +5', description: 'Tough leather, cured in the sun for seven days.', image_url: '/cards/tanned-hide.svg' },
+  { name: 'Mining Pick', rarity: 'Uncommon', special_attribute: 'Mining +8', description: 'Used to strike gold in the Black Hills. Still sharp.', image_url: '/cards/mining-pick.svg' },
+  { name: 'Kerosene Lamp', rarity: 'Uncommon', special_attribute: 'Visibility +10', description: 'Pierces through the darkest desert nights.', image_url: '/cards/kerosene-lamp.svg' },
+  { name: 'Stagecoach Wheel', rarity: 'Common', special_attribute: 'Repair +5', description: 'A sturdy spare for the long road to San Francisco.', image_url: '/cards/stagecoach-wheel.svg' },
+  { name: 'Cowboy Hat', rarity: 'Common', special_attribute: 'Style +2', description: 'A wide-brimmed classic. Keeps the sun out of your eyes.', image_url: '/cards/cowboy-hat.svg' },
 ];
 
 export async function claimStarterPack() {

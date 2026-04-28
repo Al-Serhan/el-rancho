@@ -37,12 +37,12 @@
 /* UI Elements */
 @layer components {
   .btn-pixel {
-    @apply inline-block font-heading text-sm uppercase px-4 py-3 border-4 border-b-8 border-r-8 border-terracotta-600 bg-terracotta-400 text-rust-900 hover:bg-terracotta-500 hover:border-terracotta-600 active:border-4 active:mt-1 active:ml-1 transition-all;
+    @apply inline-block font-heading text-base uppercase px-6 py-4 border-4 border-b-8 border-r-8 border-terracotta-600 bg-terracotta-400 text-rust-900 hover:bg-terracotta-500 hover:border-terracotta-600 active:border-4 active:mt-1 active:ml-1 transition-all;
     image-rendering: pixelated;
   }
   
   .panel-pixel {
-    @apply border-4 border-sand-400 bg-rust-800 p-6 shadow-[8px_8px_0_0_theme('color.rust-900')] relative overflow-hidden;
+    @apply border-4 border-sand-400 bg-rust-800 p-8 shadow-[8px_8px_0_0_theme('color.rust-900')] relative overflow-hidden;
   }
 
   /* Immersive Overlays */

@@ -1,0 +1,5 @@
+
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="image-rendering: pixelated;">
+  <rect width="100" height="100" fill="none" />
+  <path d="M40 30 Q50 20 60 40 T40 80" stroke="#3B2F2F" stroke-width="15" fill="none" />
+</svg>

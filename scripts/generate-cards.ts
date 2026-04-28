@@ -21,6 +21,16 @@ const CARDS = [
   { name: 'desert-rose', color: '#FF69B4', shape: 'flower' },
   { name: 'ace-of-spades', color: '#FFFFFF', shape: 'ace' },
   { name: 'buffalo-skull', color: '#FDF5E6', shape: 'skull' },
+  { name: 'golden-key', color: '#FFD700', shape: 'key' },
+  { name: 'tomahawk', color: '#8B4513', shape: 'axe' },
+  { name: 'peace-pipe', color: '#D2691E', shape: 'pipe' },
+  { name: 'bear-claw', color: '#3B2F2F', shape: 'claw' },
+  { name: 'desert-falcon', color: '#A52A2A', shape: 'bird' },
+  { name: 'tanned-hide', color: '#CD853F', shape: 'hide' },
+  { name: 'mining-pick', color: '#708090', shape: 'pick' },
+  { name: 'kerosene-lamp', color: '#FF8C00', shape: 'lamp' },
+  { name: 'stagecoach-wheel', color: '#5C4033', shape: 'wheel' },
+  { name: 'cowboy-hat', color: '#4B3621', shape: 'hat' },
 ];
 
 function generateSVG(name: string, color: string, shape: string) {
@@ -80,6 +90,36 @@ function generateSVG(name: string, color: string, shape: string) {
       break;
     case 'skull':
       content = `<path d="M30 30 L70 30 L70 60 Q70 80 50 80 Q30 80 30 60 Z" fill="${color}" /><circle cx="40" cy="45" r="5" fill="#000" /><circle cx="60" cy="45" r="5" fill="#000" />`;
+      break;
+    case 'key':
+      content = `<circle cx="40" cy="40" r="15" fill="none" stroke="${color}" stroke-width="5" /><rect x="55" y="38" width="30" height="4" fill="${color}" /><rect x="80" y="38" width="5" height="15" fill="${color}" />`;
+      break;
+    case 'axe':
+      content = `<rect x="55" y="20" width="8" height="60" fill="#8B4513" /><path d="M30 25 L60 40 L30 55 Z" fill="#708090" />`;
+      break;
+    case 'pipe':
+      content = `<rect x="20" y="60" width="50" height="5" fill="${color}" /><rect x="65" y="45" width="15" height="20" fill="${color}" />`;
+      break;
+    case 'claw':
+      content = `<path d="M40 30 Q50 20 60 40 T40 80" stroke="${color}" stroke-width="15" fill="none" />`;
+      break;
+    case 'bird':
+      content = `<path d="M20 50 Q50 20 80 50 L50 60 Z" fill="${color}" />`;
+      break;
+    case 'hide':
+      content = `<path d="M20 20 L80 20 L90 50 L80 80 L20 80 L10 50 Z" fill="${color}" />`;
+      break;
+    case 'pick':
+      content = `<rect x="48" y="20" width="4" height="60" fill="#8B4513" /><path d="M20 30 Q50 45 80 30" stroke="#708090" stroke-width="8" fill="none" />`;
+      break;
+    case 'lamp':
+      content = `<rect x="35" y="40" width="30" height="40" fill="${color}" /><circle cx="50" cy="30" r="10" fill="yellow" />`;
+      break;
+    case 'wheel':
+      content = `<circle cx="50" cy="50" r="35" fill="none" stroke="${color}" stroke-width="4" /><circle cx="50" cy="50" r="5" fill="${color}" /><path d="M50 15 L50 85 M15 50 L85 50" stroke="${color}" stroke-width="2" />`;
+      break;
+    case 'hat':
+      content = `<ellipse cx="50" cy="70" rx="40" ry="10" fill="${color}" /><path d="M30 70 Q30 30 50 30 T70 70" fill="${color}" />`;
       break;
   }
 
