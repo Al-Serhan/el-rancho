@@ -31,7 +31,7 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
         
         {/* Front of Card */}
         <div 
-          className={`absolute inset-0 backface-hidden panel-pixel overflow-visible flex flex-col h-full bg-rust-900/60 ${rarityClass}`}
+          className={`absolute inset-0 backface-hidden panel-pixel overflow-visible flex flex-col h-full bg-rust-900 ${rarityClass}`}
           style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
         >
           <div className="aspect-square bg-rust-900 mb-6 flex items-center justify-center border-4 border-rust-700 relative overflow-hidden shrink-0">
