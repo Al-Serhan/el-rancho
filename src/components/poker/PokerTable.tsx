@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { resolvePokerGame } from '@/app/actions/poker';
-import Image from 'next/image';
 
 type Suit = '♠' | '♥' | '♦' | '♣';
 type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A';
@@ -14,11 +13,6 @@ interface Card {
 
 const SUITS: Suit[] = ['♠', '♥', '♦', '♣'];
 const RANKS: Rank[] = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-
-const RANK_VALUES: Record<Rank, number> = {
-  '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
-  'J': 11, 'Q': 12, 'K': 13, 'A': 14
-};
 
 interface NPC {
   name: string;
@@ -118,8 +112,9 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         setMessage(`BUST. ${label}. The Saloon takes your gold.`);
       }
       setPhase('result');
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      alert(error.message);
       setPhase('betting');
     } finally {
       setLoading(false);
@@ -138,20 +133,20 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   };
 
   return (
-    <div className="space-y-12 max-w-6xl mx-auto py-8">
+    <div className="space-y-12 max-w-6xl mx-auto py-8 font-pixel">
       
       {/* Dealer & NPCs Area */}
       <div className="grid grid-cols-3 gap-8 mb-12">
         {NPCS.map(npc => (
           <div key={npc.name} className="flex flex-col items-center space-y-4">
-             <div className="w-24 h-24 bg-rust-950 border-4 border-sand-400 flex items-center justify-center text-5xl relative">
+             <div className="w-24 h-24 bg-rust-950 border-4 border-sand-400 flex items-center justify-center text-5xl relative shadow-2xl">
                 {npc.avatar}
-                <div className="absolute -bottom-2 bg-terracotta-400 text-rust-950 px-2 py-0.5 text-[10px] font-bold uppercase">{npc.name}</div>
+                <div className="absolute -bottom-2 bg-terracotta-400 text-rust-950 px-2 py-0.5 text-xs font-bold uppercase tracking-tighter">{npc.name}</div>
              </div>
              {npcChat.startsWith(npc.name) && (
-               <div className="panel-pixel py-2 px-4 bg-white text-rust-900 text-xs italic animate-in fade-in slide-in-from-top duration-500 shadow-none border-2 border-rust-900 relative">
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[8px] border-b-white"></div>
-                  {npcChat.split(': "')[1]?.replace('"', '')}
+               <div className="panel-pixel py-3 px-5 bg-white text-rust-900 text-sm italic animate-in fade-in slide-in-from-top duration-500 shadow-none border-4 border-rust-900 relative">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[10px] border-b-rust-900"></div>
+                  &quot;{npcChat.split(': "')[1]?.replace('"', '')}&quot;
                </div>
              )}
           </div>
@@ -159,57 +154,59 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       </div>
 
       {/* Table Center */}
-      <div className="panel-pixel bg-green-950/40 border-sand-400 min-h-[350px] flex flex-col items-center justify-center relative space-y-8 shadow-[0_0_50px_rgba(0,0,0,0.5)_inset]">
-        <div className="absolute top-4 left-4 font-heading text-sand-500 opacity-50 uppercase tracking-widest">Community Pot: 💰 {pot}</div>
+      <div className="panel-pixel bg-green-950/60 border-sand-400 min-h-[400px] flex flex-col items-center justify-center relative space-y-10 shadow-[0_0_100px_rgba(0,0,0,0.8)_inset]">
+        <div className="absolute top-6 left-6 font-heading text-sand-500 opacity-60 uppercase tracking-widest text-lg">Community Pot: 💰 {pot}</div>
         
         {/* Community Cards */}
-        <div className="flex gap-4">
+        <div className="flex gap-6">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className={`w-20 h-32 rounded border-4 flex items-center justify-center text-xl font-bold transition-all duration-500 ${communityCards[i] ? 'bg-white text-rust-900 border-sand-500 scale-100' : 'bg-rust-900/50 border-rust-900 border-dashed scale-95 opacity-50'}`}>
-               {communityCards[i] ? `${communityCards[i].rank}${communityCards[i].suit}` : '?'}
+            <div key={i} className={`w-24 h-36 rounded-lg border-4 flex items-center justify-center text-2xl font-bold transition-all duration-500 shadow-xl ${communityCards[i] ? 'bg-white text-rust-900 border-sand-300 scale-100' : 'bg-rust-900/30 border-rust-900 border-dashed scale-95 opacity-30'}`}>
+               {communityCards[i] ? `${communityCards[i].rank}${communityCards[i].suit}` : ''}
             </div>
           ))}
         </div>
 
-        <div className="text-2xl font-heading text-terracotta-400 tracking-widest animate-pulse">{message}</div>
+        <div className="text-3xl font-heading text-terracotta-400 tracking-[0.2em] animate-pulse text-center px-4 leading-relaxed">{message}</div>
       </div>
 
       {/* Player Area */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-12 pt-8">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-12 pt-12">
         
-        <div className="flex items-center gap-8">
-          <div className="panel-pixel p-4 bg-rust-950/80 border-sand-400 shadow-none text-center space-y-2">
-             <p className="text-[10px] uppercase text-sand-500 font-bold">Your Hand</p>
-             <div className="flex gap-2">
+        <div className="flex items-center gap-10">
+          <div className="panel-pixel p-6 bg-rust-950/90 border-sand-400 shadow-none text-center space-y-4">
+             <p className="text-xs uppercase text-sand-500 font-bold tracking-widest">Your Hand</p>
+             <div className="flex gap-4">
                 {playerHand.map((card, i) => (
-                  <div key={i} className="w-16 h-24 bg-white border-2 border-rust-900 rounded flex items-center justify-center text-lg font-bold text-rust-900 animate-in zoom-in duration-300">
+                  <div key={i} className="w-20 h-32 bg-white border-4 border-rust-900 rounded-lg flex items-center justify-center text-xl font-bold text-rust-900 animate-in zoom-in duration-500 shadow-lg">
                     {card.rank}{card.suit}
                   </div>
                 ))}
-                {playerHand.length === 0 && <div className="w-32 h-24 border-2 border-rust-900 border-dashed rounded opacity-20"></div>}
+                {playerHand.length === 0 && <div className="w-44 h-32 border-4 border-rust-900 border-dashed rounded-lg opacity-10"></div>}
              </div>
           </div>
         </div>
 
-        <div className="flex-1 max-w-md w-full">
+        <div className="flex-1 max-w-lg w-full">
            {phase === 'betting' ? (
-             <div className="panel-pixel space-y-6">
-                <div className="flex justify-between items-center text-sm uppercase font-bold text-sand-500">
-                   <span>Ante Amount</span>
-                   <span className="text-sand-300">💰 {bet}</span>
+             <div className="panel-pixel space-y-8 bg-rust-900/50">
+                <div className="flex justify-between items-center text-lg uppercase font-bold text-sand-500 tracking-widest">
+                   <span>Set Ante</span>
+                   <span className="text-sand-200 text-2xl">💰 {bet}</span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                    {[10, 25, 50, 100].map(val => (
-                     <button key={val} onClick={() => setBet(val)} className={`btn-pixel text-[10px] flex-1 py-3 ${bet === val ? 'bg-sand-400 text-rust-950' : 'bg-rust-800'}`}>{val}</button>
+                     <button key={val} onClick={() => setBet(val)} className={`btn-pixel text-xs flex-1 py-4 px-0 ${bet === val ? 'bg-sand-400 text-rust-950 border-sand-600' : 'bg-rust-800 border-rust-950 opacity-70 hover:opacity-100'}`}>{val}</button>
                    ))}
                 </div>
-                <button onClick={startRound} className="btn-pixel w-full py-5 text-xl tracking-widest">BUY IN</button>
+                <button onClick={startRound} className="btn-pixel w-full py-6 text-2xl tracking-[0.3em] font-heading">BUY IN</button>
              </div>
            ) : phase === 'result' ? (
-             <button onClick={() => { setPhase('betting'); setHand([]); setCommunity([]); setMessage('Care for another round?'); }} className="btn-pixel w-full py-6 text-xl tracking-widest">PLAY AGAIN</button>
+             <button onClick={() => { setPhase('betting'); setHand([]); setCommunity([]); setMessage('Care for another round?'); }} className="btn-pixel w-full py-8 text-2xl tracking-[0.2em] font-heading">PLAY AGAIN</button>
            ) : (
-             <button onClick={nextPhase} disabled={loading} className="btn-pixel w-full py-6 text-xl tracking-widest uppercase">
-                {phase === 'showdown' ? 'SHOWDOWN' : `CONTINUE (${phase})`}
+             <button onClick={nextPhase} disabled={loading} className="btn-pixel w-full py-8 text-2xl tracking-[0.2em] font-heading uppercase group">
+                <span className="group-hover:scale-110 transition-transform inline-block">
+                  {phase === 'showdown' ? '💥 SHOWDOWN 💥' : `NEXT PHASE: ${phase}`}
+                </span>
              </button>
            )}
         </div>
