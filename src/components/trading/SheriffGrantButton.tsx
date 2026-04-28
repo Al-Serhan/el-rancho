@@ -14,8 +14,9 @@ export default function SheriffGrantButton() {
       await sheriffGrantAllCards();
       alert('Authority invoked. All cards added to your vault, Sheriff.');
       router.refresh();
-    } catch (err: any) {
-      alert('Error: ' + err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      alert('Error: ' + error.message);
     } finally {
       setLoading(false);
     }

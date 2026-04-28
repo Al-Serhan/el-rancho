@@ -44,13 +44,18 @@ export async function claimStarterPack() {
   const commons = cards.filter(c => c.rarity === 'Common');
   const others = cards.filter(c => c.rarity !== 'Common' && c.rarity !== 'Legendary');
   
-  const selected: any[] = [];
+  interface SelectedCard {
+    id: string;
+    name: string;
+    rarity: string;
+  }
+  const selected: SelectedCard[] = [];
   // 2 Random Commons
   for(let i=0; i<2; i++) {
-    selected.push(commons[Math.floor(Math.random() * commons.length)]);
+    selected.push(commons[Math.floor(Math.random() * commons.length)] as SelectedCard);
   }
   // 1 Random Uncommon/Rare/Epic
-  selected.push(others[Math.floor(Math.random() * others.length)]);
+  selected.push(others[Math.floor(Math.random() * others.length)] as SelectedCard);
 
   const inventoryItems = selected.map(card => ({
     user_id: user.id,

@@ -14,8 +14,9 @@ export default function ClaimButton() {
       await claimStarterPack();
       alert('The frontier has provided! Check your satchel.');
       router.refresh();
-    } catch (err: any) {
-      alert('Error: ' + err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      alert('Error: ' + error.message);
     } finally {
       setLoading(false);
     }
