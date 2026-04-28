@@ -73,8 +73,8 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
           </div>
 
           <div className="px-6 space-y-4 text-center">
-            <h4 className="font-heading text-sand-400 text-lg uppercase border-b-2 border-rust-900 pb-2">Artifact Lore</h4>
-            <p className="text-base text-sand-300 italic leading-relaxed font-pixel">
+            <h4 className="font-heading text-sand-400 text-xl uppercase border-b-2 border-rust-900 pb-2">El Rancho Collectible Card</h4>
+            <p className="text-lg text-sand-300 italic leading-relaxed font-pixel">
               &quot;{card.description || 'A tattered remnant of a forgotten era, found buried beneath the red sands of the frontier.'}&quot;
             </p>
           </div>

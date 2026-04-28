@@ -47,12 +47,12 @@ export default async function Dashboard() {
             />
           </div>
 
-          <div className="space-y-1">
-            <h3 className="text-2xl font-heading text-white tracking-tight">{username}</h3>
-            <p className="text-terracotta-400 uppercase text-xs font-bold tracking-[0.2em]">{role}</p>
+          <div className="space-y-2 text-center">
+            <h3 className="text-3xl font-heading text-white tracking-tight">{username}</h3>
+            <p className="text-terracotta-400 uppercase text-sm font-bold tracking-[0.2em]">{role}</p>
           </div>
 
-          <div className="mt-8 pt-6 border-t-2 border-rust-900/50 flex flex-col gap-3">
+          <div className="mt-8 pt-6 border-t-2 border-rust-900/50 flex flex-col gap-3 px-4">
              <div className="flex justify-between items-center text-[10px] uppercase text-sand-500 font-bold">
                <span>Reputation</span>
                <span>Honorable</span>
