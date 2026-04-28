@@ -98,16 +98,21 @@ export async function sheriffGrantAllCards() {
   if (profile?.role !== 'Sheriff') throw new Error('Only the Sheriff can do this!');
 
   const adminSupabase = createAdminClient();
-  const { data: cards } = await adminSupabase.from('cards').select('id');
-  
-  if (!cards) return;
 
-  const inventoryItems = cards.map(card => ({
+  // 1. Force Sync the entire library first
+  const { data: allCards, error: syncError } = await adminSupabase
+    .from('cards')
+    .upsert(FRONTIER_LEGENDS, { onConflict: 'name' })
+    .select('id');
+
+  if (syncError || !allCards) throw new Error('Failed to sync library');
+
+  const inventoryItems = allCards.map(card => ({
     user_id: user.id,
     card_id: card.id
   }));
 
-  // Clear existing and grant all
+  // 2. Clear existing and grant the complete 29-card set
   await adminSupabase.from('user_inventory').delete().eq('user_id', user.id);
   await adminSupabase.from('user_inventory').insert(inventoryItems);
 
