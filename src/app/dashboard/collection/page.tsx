@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { UserInventory } from '@/types/database';
+import ClaimButton from '@/components/trading/ClaimButton';
+import SheriffGrantButton from '@/components/trading/SheriffGrantButton';
 
 export const revalidate = 0;
 
@@ -12,6 +14,13 @@ export default async function CollectionPage() {
     redirect('/');
   }
 
+  // Fetch real profile data to check role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
   // Fetch user inventory with card details
   const { data: inventory } = await supabase
     .from('user_inventory')
@@ -19,6 +28,7 @@ export default async function CollectionPage() {
     .eq('user_id', user.id);
 
   const myCards = (inventory as unknown as UserInventory[]) || [];
+  const isSheriff = profile?.role === 'Sheriff';
 
   return (
     <main className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-in slide-in-from-bottom duration-500">
@@ -26,6 +36,7 @@ export default async function CollectionPage() {
         <div>
           <p className="text-terracotta-400 text-sm uppercase mb-1">Vault</p>
           <h1 className="text-3xl">Your Collection</h1>
+          {isSheriff && <SheriffGrantButton />}
         </div>
         <div className="text-right">
           <p className="text-xs text-sand-500 uppercase">Cards Owned</p>
@@ -62,18 +73,16 @@ export default async function CollectionPage() {
               </div>
             </div>
           ))}
-          
-          {/* Empty Slots */}
-          {[...Array(Math.max(0, 4 - myCards.length))].map((_, i) => (
-            <div key={`empty-${i}`} className="panel-pixel opacity-20 border-dashed border-sand-500 flex items-center justify-center py-20 grayscale">
-              <span className="text-2xl">?</span>
-            </div>
-          ))}
         </div>
       ) : (
-        <div className="panel-pixel py-20 text-center space-y-4">
-          <p className="text-sand-500">Your satchel is empty, partner.</p>
-          <p className="text-xs">Head to the Trading Post to make some deals.</p>
+        <div className="panel-pixel py-20 text-center space-y-8 flex flex-col items-center">
+          <div className="space-y-2">
+            <p className="text-sand-500 text-xl font-heading uppercase">Your satchel is empty</p>
+            <p className="text-sm text-sand-500 max-w-md mx-auto font-pixel text-lg">
+              Every legend starts somewhere. Claim your starter pack to begin your journey in the frontier.
+            </p>
+          </div>
+          <ClaimButton />
         </div>
       )}
     </main>
