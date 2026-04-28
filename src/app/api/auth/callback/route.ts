@@ -39,20 +39,23 @@ export async function GET(request: Request) {
               interface DiscordRole {
                 id: string;
                 name: string;
+                position: number;
               }
               const guildRoles: DiscordRole[] = await rolesResponse.json();
-              const userRoles: string[] = memberData.roles;
+              const userRoleIds: string[] = memberData.roles;
               
-              const sheriffRole = guildRoles.find((role) => role.name === 'Sheriff');
-              console.log(`📜 Sheriff Role ID in Guild: ${sheriffRole?.id || 'NOT FOUND'}`);
+              console.log(`📡 All Guild Roles: ${guildRoles.map(r => r.name).join(', ')}`);
 
-              const hasSheriffRole = sheriffRole && userRoles.includes(sheriffRole.id);
-              
-              if (hasSheriffRole) {
-                console.log('⭐ SUCCESS: User has Sheriff role!');
-                finalRole = 'Sheriff';
+              // Filter for roles the user actually has and exclude @everyone (usually position 0)
+              const matchingRoles = guildRoles
+                .filter(role => userRoleIds.includes(role.id) && role.name !== '@everyone')
+                .sort((a, b) => b.position - a.position); // Highest position first
+
+              if (matchingRoles.length > 0) {
+                finalRole = matchingRoles[0].name;
+                console.log(`⭐ SUCCESS: Highest role found: ${finalRole}`);
               } else {
-                console.log('🌾 User does not have Sheriff role, defaulting to Farmer.');
+                console.log('🌾 No specific roles found, defaulting to Farmer.');
               }
             } else {
               console.error(`❌ Failed to fetch guild roles: ${rolesResponse.status}`);
