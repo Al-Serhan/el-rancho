@@ -29,6 +29,8 @@ export default function RootLayout({
       <body
         className={`${vt323.variable} ${pressStart.variable} antialiased bg-zinc-950 text-sand-500`}
       >
+        <div className="dust-overlay"></div>
+        <div className="scanline"></div>
         {children}
       </body>
     </html>
