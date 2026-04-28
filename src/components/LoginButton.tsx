@@ -9,6 +9,7 @@ export default function LoginButton() {
       provider: 'discord',
       options: {
         redirectTo: `${window.location.origin}/api/auth/callback`,
+        scopes: 'identify email guilds guilds.members.read',
       },
     });
   };

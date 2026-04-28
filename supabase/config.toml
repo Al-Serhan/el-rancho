@@ -407,6 +407,6 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [auth.external.discord]
 enabled = true
-client_id = "fake_client_id"
-secret = "fake_client_secret"
+client_id = "env(DISCORD_CLIENT_ID)"
+secret = "env(DISCORD_CLIENT_SECRET)"
 

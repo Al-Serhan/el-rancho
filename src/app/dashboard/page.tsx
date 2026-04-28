@@ -10,9 +10,16 @@ export default async function Dashboard() {
     redirect('/');
   }
 
-  const role = user.user_metadata?.role || 'Farmer';
-  const avatarUrl = user.user_metadata?.avatar_url || '/default-avatar.png';
-  const username = user.user_metadata?.full_name || 'Anonymous Cowboy';
+  // Fetch real profile data from the database
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  const role = profile?.role || 'Farmer';
+  const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || '/default-avatar.png';
+  const username = profile?.username || user.user_metadata?.full_name || 'Anonymous Cowboy';
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-rust-900">
