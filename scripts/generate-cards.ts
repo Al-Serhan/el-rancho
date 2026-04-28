@@ -31,6 +31,7 @@ const CARDS = [
   { name: 'kerosene-lamp', color: '#FF8C00', shape: 'lamp' },
   { name: 'stagecoach-wheel', color: '#5C4033', shape: 'wheel' },
   { name: 'cowboy-hat', color: '#4B3621', shape: 'hat' },
+  { name: 'card-back', color: '#8B4513', shape: 'back' },
 ];
 
 function generateSVG(name: string, color: string, shape: string) {
@@ -120,6 +121,13 @@ function generateSVG(name: string, color: string, shape: string) {
       break;
     case 'hat':
       content = `<ellipse cx="50" cy="70" rx="40" ry="10" fill="${color}" /><path d="M30 70 Q30 30 50 30 T70 70" fill="${color}" />`;
+      break;
+    case 'back':
+      content = `
+        <rect x="10" y="10" width="80" height="80" fill="#5C4033" rx="5" />
+        <rect x="20" y="20" width="60" height="60" fill="none" stroke="#D2B48C" stroke-width="4" stroke-dasharray="8 4" />
+        <text x="50" y="55" font-family="Arial" font-size="40" text-anchor="middle" fill="#D2B48C">🌵</text>
+      `;
       break;
   }
 
