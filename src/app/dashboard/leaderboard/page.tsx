@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
+import Image from 'next/image';
 
 export const revalidate = 60; // Refresh leaderboard every 60 seconds
 
@@ -29,36 +30,39 @@ export default async function LeaderboardPage() {
       <div className="panel-pixel overflow-hidden p-0">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-rust-900 text-[10px] uppercase text-sand-500 font-heading border-b-4 border-sand-400">
-              <th className="p-4 w-16 text-center">Rank</th>
-              <th className="p-4">Cowboy</th>
-              <th className="p-4">Role</th>
-              <th className="p-4 text-right">Gold</th>
+            <tr className="bg-rust-900 text-xs uppercase text-sand-500 font-heading border-b-4 border-sand-400">
+              <th className="p-6 w-20 text-center">Rank</th>
+              <th className="p-6 text-lg">Cowboy</th>
+              <th className="p-6 text-lg">Role</th>
+              <th className="p-6 text-right text-lg">Gold</th>
             </tr>
           </thead>
           <tbody className="divide-y-2 divide-rust-900">
             {topPlayers?.map((player, index) => (
               <tr key={index} className={`hover:bg-rust-700/50 transition-colors ${player.username === user.user_metadata?.full_name ? 'bg-terracotta-400/10' : ''}`}>
-                <td className="p-4 text-center font-heading text-xl">
+                <td className="p-6 text-center font-heading text-2xl">
                   {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                 </td>
-                <td className="p-4 flex items-center gap-3">
-                  <img 
+                <td className="p-6 flex items-center gap-4">
+                  <Image 
                     src={player.avatar_url || '/default-avatar.png'} 
                     alt="" 
-                    className="w-8 h-8 pixelated border-2 border-sand-400 bg-rust-900" 
+                    width={48}
+                    height={48}
+                    className="pixelated border-2 border-sand-400 bg-rust-900 unoptimized" 
+                    unoptimized
                   />
-                  <span className="font-bold">{player.username || 'Unknown Drifter'}</span>
+                  <span className="font-bold text-lg">{player.username || 'Unknown Drifter'}</span>
                 </td>
-                <td className="p-4 text-xs uppercase text-terracotta-400">{player.role}</td>
-                <td className="p-4 text-right text-sand-300 font-heading">{player.gold_coins}</td>
+                <td className="p-6 text-sm uppercase text-terracotta-400 font-bold tracking-wider">{player.role}</td>
+                <td className="p-6 text-right text-sand-300 font-heading text-2xl tracking-tighter">{player.gold_coins}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <div className="text-center text-[10px] text-sand-500 italic">
+      <div className="text-center text-xs text-sand-500 italic">
         * Leaderboard updates every minute. Keep playing to climb the ranks!
       </div>
     </main>

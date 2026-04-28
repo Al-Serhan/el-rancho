@@ -84,17 +84,17 @@ export default async function CollectionPage() {
                 ) : (
                   <span className="text-4xl group-hover:scale-125 transition-transform duration-300">🃏</span>
                 )}
-                <div className={`absolute bottom-0 left-0 right-0 bg-rust-900/90 p-2 text-[11px] text-center uppercase border-t-2 border-rust-700 tracking-tighter ${getRarityTextClass(item.cards.rarity)}`}>
+                <div className={`absolute bottom-0 left-0 right-0 bg-rust-900/90 p-2 text-sm text-center uppercase border-t-2 border-rust-700 tracking-tighter ${getRarityTextClass(item.cards.rarity)}`}>
                   {item.cards.rarity}
                 </div>
               </div>
-              <div className="flex-1 space-y-2 px-1">
-                <h3 className="text-sm text-center font-heading truncate text-sand-200 uppercase tracking-wider">{item.cards.name}</h3>
-                <p className={`text-[11px] text-center uppercase tracking-widest font-bold ${getRarityTextClass(item.cards.rarity)}`}>
+              <div className="flex-1 space-y-3 px-1">
+                <h3 className="text-base text-center font-heading truncate text-sand-200 uppercase tracking-wider">{item.cards.name}</h3>
+                <p className={`text-xs text-center uppercase tracking-widest font-bold ${getRarityTextClass(item.cards.rarity)}`}>
                   {item.cards.special_attribute}
                 </p>
                 <div className="h-px bg-rust-800 w-full my-1"></div>
-                <p className="text-xs text-sand-300 text-center italic leading-relaxed line-clamp-4 pb-2 font-pixel">
+                <p className="text-sm text-sand-300 text-center italic leading-relaxed line-clamp-4 pb-2 font-pixel">
                   &quot;{item.cards.description || 'A mysterious relic from the dusty plains.'}&quot;
                 </p>
               </div>

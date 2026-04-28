@@ -24,27 +24,27 @@ export default function Navbar({ gold }: { gold: number }) {
         </Link>
         
         <div className="flex items-center gap-6">
-          <div className="flex flex-wrap justify-center gap-1">
+          <div className="flex flex-wrap justify-center gap-2">
             {tabs.map((tab) => (
               <Link
                 key={tab.name}
                 href={tab.href}
                 className={`
-                  btn-pixel text-[10px] py-2 px-3 flex items-center gap-2
+                  btn-pixel text-xs py-3 px-4 flex items-center gap-2
                   ${pathname === tab.href ? 'bg-sand-400 text-rust-900 border-sand-600' : 'bg-rust-700 border-rust-900 text-sand-500'}
                 `}
               >
-                <span>{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.name}</span>
+                <span className="text-lg">{tab.icon}</span>
+                <span className="hidden sm:inline font-bold tracking-tight">{tab.name}</span>
               </Link>
             ))}
           </div>
 
           <div className="h-10 w-px bg-rust-900 hidden md:block"></div>
 
-          <div className="panel-pixel py-1 px-4 bg-rust-900/50 border-sand-500/30 flex items-center gap-3 shadow-none">
-            <span className="text-xl">💰</span>
-            <span className="font-heading text-sand-300 text-xl tracking-tighter">{gold}</span>
+          <div className="panel-pixel py-2 px-6 bg-rust-900/50 border-sand-500/30 flex items-center gap-3 shadow-none">
+            <span className="text-2xl">💰</span>
+            <span className="font-heading text-sand-300 text-2xl tracking-tighter">{gold}</span>
           </div>
         </div>
       </div>
