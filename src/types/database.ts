@@ -12,6 +12,7 @@ export interface Card {
   rarity: string;
   image_url: string | null;
   special_attribute: string | null;
+  description: string | null;
 }
 
 export interface UserInventory {

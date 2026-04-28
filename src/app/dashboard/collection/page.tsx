@@ -36,18 +36,30 @@ export default async function CollectionPage() {
       {myCards.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {myCards.map((item) => (
-            <div key={item.id} className="panel-pixel group hover:border-terracotta-400 transition-all hover:-translate-y-2">
-              <div className="aspect-square bg-rust-900 mb-4 flex items-center justify-center border-4 border-rust-700 relative overflow-hidden">
-                {/* Placeholder for card art */}
-                <span className="text-4xl group-hover:scale-125 transition-transform duration-300">🃏</span>
+            <div key={item.id} className="panel-pixel group hover:border-terracotta-400 transition-all hover:-translate-y-2 flex flex-col h-full">
+              <div className="aspect-square bg-rust-900 mb-4 flex items-center justify-center border-4 border-rust-700 relative overflow-hidden shrink-0">
+                {item.cards.image_url ? (
+                  <img 
+                    src={item.cards.image_url} 
+                    alt={item.cards.name} 
+                    className="w-full h-full pixelated p-2"
+                  />
+                ) : (
+                  <span className="text-4xl group-hover:scale-125 transition-transform duration-300">🃏</span>
+                )}
                 <div className="absolute bottom-0 left-0 right-0 bg-rust-900/80 p-1 text-[10px] text-center uppercase border-t-2 border-rust-700">
                   {item.cards.rarity}
                 </div>
               </div>
-              <h3 className="text-sm text-center mb-1 truncate">{item.cards.name}</h3>
-              <p className="text-[10px] text-sand-500 text-center italic truncate">
-                {item.cards.special_attribute || 'No attributes'}
-              </p>
+              <div className="flex-1 space-y-2">
+                <h3 className="text-sm text-center font-heading truncate text-sand-300">{item.cards.name}</h3>
+                <p className="text-[10px] text-terracotta-400 text-center uppercase tracking-widest font-bold">
+                  {item.cards.special_attribute}
+                </p>
+                <p className="text-[11px] text-sand-500 text-center italic leading-tight line-clamp-3 px-1 border-t border-rust-800 pt-2">
+                  &quot;{item.cards.description || 'A mysterious relic from the dusty plains.'}&quot;
+                </p>
+              </div>
             </div>
           ))}
           
