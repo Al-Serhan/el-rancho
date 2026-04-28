@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
 
+export const revalidate = 0;
+
 export default async function Dashboard() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -16,9 +18,6 @@ export default async function Dashboard() {
     .select('*')
     .eq('id', user.id)
     .single();
-
-  // Add this line to ensure the page doesn't cache stale data
-  export const revalidate = 0;
 
   const role = profile?.role || 'Farmer';
   const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || '/default-avatar.png';
