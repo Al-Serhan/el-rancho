@@ -17,15 +17,16 @@ const RANKS: Rank[] = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', '
 interface NPC {
   name: string;
   avatar: string;
+  personality: 'aggressive' | 'cowardly' | 'balanced';
+  hand: Card[];
+  isFolded: boolean;
   phrase: string;
-  personality: 'aggressive' | 'cowardly' | 'sassy';
-  lastAction?: string;
 }
 
-const NPCS: NPC[] = [
-  { name: 'One-Eyed Pete', avatar: '👁️', phrase: 'I seen better hands in a graveyard!', personality: 'aggressive' },
-  { name: 'Rusty Red', avatar: '🧔', phrase: 'Is it my turn yet? I got beans cookin.', personality: 'cowardly' },
-  { name: 'AI Silas', avatar: '🤖', phrase: 'Calculating... your probability of winning is 0.04%.', personality: 'sassy' }
+const INITIAL_NPCS: NPC[] = [
+  { name: 'One-Eyed Pete', avatar: '👁️', personality: 'aggressive', hand: [], isFolded: false, phrase: 'I seen better hands in a graveyard!' },
+  { name: 'Rusty Red', avatar: '🧔', personality: 'cowardly', hand: [], isFolded: false, phrase: 'I got a bad feeling about this...' },
+  { name: 'AI Silas', avatar: '🤖', personality: 'balanced', hand: [], isFolded: false, phrase: 'Probabilities are... interesting.' }
 ];
 
 export default function PokerTable({ initialGold }: { initialGold: number }) {
@@ -33,10 +34,12 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [deck, setDeck] = useState<Card[]>([]);
   const [playerHand, setHand] = useState<Card[]>([]);
   const [communityCards, setCommunity] = useState<Card[]>([]);
+  const [npcs, setNpcs] = useState<NPC[]>(INITIAL_NPCS);
   const [phase, setPhase] = useState<'betting' | 'flop' | 'turn' | 'river' | 'showdown' | 'result'>('betting');
   const [pot, setPot] = useState(0);
   const [bet, setBet] = useState(10);
-  const [message, setMessage] = useState('Welcome to the Saloon, stranger.');
+  const [currentCall, setCurrentCall] = useState(0);
+  const [message, setMessage] = useState('Step up to the table, partner.');
   const [loading, setLoading] = useState(false);
   const [npcChat, setNpcChat] = useState<string>('');
 
@@ -51,65 +54,96 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   };
 
   const startRound = () => {
-    if (gold < bet) return alert('Out of gold, cowboy!');
+    if (gold < bet) return alert('Not enough gold!');
+    
     const newDeck = createDeck();
-    const hand = newDeck.splice(0, 2);
+    const playerHole = newDeck.splice(0, 2);
+    
+    const updatedNpcs = INITIAL_NPCS.map(npc => ({
+      ...npc,
+      hand: newDeck.splice(0, 2),
+      isFolded: false
+    }));
+
     setDeck(newDeck);
-    setHand(hand);
+    setHand(playerHole);
+    setNpcs(updatedNpcs);
     setCommunity([]);
-    setPot(bet * 4); // Player + 3 NPCs
+    setPot(bet * 4);
     setGold(prev => prev - bet);
+    setCurrentCall(bet);
     setPhase('flop');
-    setMessage('Here are your cards. Watch them close.');
-    triggerNpcChat('start');
+    setMessage('The cards are dealt. Your move.');
+    setNpcChat('One-Eyed Pete: "I\'m in. Let\'s see what you got."');
   };
 
-  const nextPhase = async () => {
+  const handleAction = async (action: 'fold' | 'check' | 'call' | 'raise') => {
+    if (action === 'fold') {
+      setMessage('You folded. The Saloon takes your ante.');
+      setPhase('result');
+      return;
+    }
+
+    if (action === 'raise') {
+      const raiseAmt = bet * 2;
+      if (gold < raiseAmt) return alert('Not enough gold to raise!');
+      setGold(prev => prev - raiseAmt);
+      setPot(prev => prev + raiseAmt + (raiseAmt * 3)); // NPCs match
+      setMessage(`You raised to ${raiseAmt}!`);
+    }
+
+    // Progress game
     const newDeck = [...deck];
     if (phase === 'flop') {
       setCommunity(newDeck.splice(0, 3));
-      setDeck(newDeck);
       setPhase('turn');
-      triggerNpcChat('flop');
     } else if (phase === 'turn') {
       setCommunity(prev => [...prev, newDeck.splice(0, 1)[0]]);
-      setDeck(newDeck);
       setPhase('river');
-      triggerNpcChat('turn');
     } else if (phase === 'river') {
       setCommunity(prev => [...prev, newDeck.splice(0, 1)[0]]);
-      setDeck(newDeck);
       setPhase('showdown');
-      triggerNpcChat('river');
     } else if (phase === 'showdown') {
-      resolveHand();
+      await resolveShowdown();
     }
+    setDeck(newDeck);
+    triggerNpcReaction();
   };
 
-  const triggerNpcChat = (type: string) => {
-    const npc = NPCS[Math.floor(Math.random() * NPCS.length)];
-    if (type === 'start') setNpcChat(`${npc.name}: "${npc.phrase}"`);
-    else if (type === 'flop') setNpcChat(`${npc.name}: "The plot thickens like bad gravy."`);
-    else if (type === 'turn') setNpcChat(`${npc.name}: "I've got a bad feeling about this."`);
-    else if (type === 'river') setNpcChat(`${npc.name}: "Final card. Show me your heart!"`);
+  const triggerNpcReaction = () => {
+    const activeNpcs = npcs.filter(n => !n.isFolded);
+    const npc = activeNpcs[Math.floor(Math.random() * activeNpcs.length)];
+    const reactions = [
+      'Interesting move...',
+      'You bluffing, boy?',
+      'The desert sun is getting to ya.',
+      'I\'ll stay for now.',
+      'Show me the next one, dealer!'
+    ];
+    setNpcChat(`${npc.name}: "${reactions[Math.floor(Math.random() * reactions.length)]}"`);
   };
 
-  const resolveHand = async () => {
+  const resolveShowdown = async () => {
     setLoading(true);
-    // Simple logic for single player: evaluate best 5 of 7 cards
-    const allCards = [...playerHand, ...communityCards];
-    const { score, label } = evaluateTexasHoldem(allCards);
-    
-    // In this simplified solo version, score > threshold wins
-    const multiplier = score > 15 ? 2.5 : 0; // Win if at least One Pair (Jacks or Better) or higher
-    
+    const playerAll = [...playerHand, ...communityCards];
+    const playerRank = evaluateHand(playerAll);
+
+    let winCount = 0;
+    npcs.forEach(npc => {
+      const npcAll = [...npc.hand, ...communityCards];
+      if (playerRank.score > evaluateHand(npcAll).score) winCount++;
+    });
+
+    const isWinner = winCount >= 2; // Win if better than at least 2 NPCs
+    const multiplier = isWinner ? 3 : 0;
+
     try {
       const result = await resolvePokerGame(bet, multiplier);
       setGold(result.newBalance);
-      if (multiplier > 0) {
-        setMessage(`WINNER! ${label}. You took the pot of ${Math.floor(bet * multiplier)}!`);
+      if (isWinner) {
+        setMessage(`WINNER! ${playerRank.label}. You took the pot!`);
       } else {
-        setMessage(`BUST. ${label}. The Saloon takes your gold.`);
+        setMessage(`LOSE. ${playerRank.label} wasn't enough.`);
       }
       setPhase('result');
     } catch (err: unknown) {
@@ -121,31 +155,43 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     }
   };
 
-  const evaluateTexasHoldem = (cards: Card[]) => {
-    // Basic scoring for simplified game
+  const evaluateHand = (cards: Card[]) => {
     const counts: Record<string, number> = {};
     cards.forEach(c => counts[c.rank] = (counts[c.rank] || 0) + 1);
     const pairs = Object.entries(counts).filter(([_, count]) => count >= 2);
     
-    if (pairs.length >= 2) return { score: 20, label: 'Two Pair or Better' };
-    if (pairs.length === 1) return { score: 16, label: 'One Pair' };
+    if (pairs.length >= 3) return { score: 30, label: 'Three Pair or Better' };
+    if (pairs.length === 2) return { score: 20, label: 'Two Pair' };
+    if (pairs.length === 1) return { score: 10, label: 'One Pair' };
     return { score: 5, label: 'High Card' };
   };
 
   return (
-    <div className="space-y-12 max-w-6xl mx-auto py-8 font-pixel">
+    <div className="space-y-16 max-w-7xl mx-auto py-12 font-pixel">
       
-      {/* Dealer & NPCs Area */}
-      <div className="grid grid-cols-3 gap-8 mb-12">
-        {NPCS.map(npc => (
-          <div key={npc.name} className="flex flex-col items-center space-y-4">
-             <div className="w-24 h-24 bg-rust-950 border-4 border-sand-400 flex items-center justify-center text-5xl relative shadow-2xl">
+      {/* NPCs Area */}
+      <div className="grid grid-cols-3 gap-12">
+        {npcs.map(npc => (
+          <div key={npc.name} className="flex flex-col items-center space-y-6">
+             <div className={`w-32 h-32 bg-rust-950 border-8 flex items-center justify-center text-6xl relative shadow-2xl transition-all ${npc.isFolded ? 'opacity-30 grayscale border-rust-900' : 'border-sand-400'}`}>
                 {npc.avatar}
-                <div className="absolute -bottom-2 bg-terracotta-400 text-rust-950 px-2 py-0.5 text-xs font-bold uppercase tracking-tighter">{npc.name}</div>
+                <div className="absolute -bottom-3 bg-terracotta-400 text-rust-950 px-4 py-1 text-xs font-bold uppercase tracking-widest border-2 border-rust-900">{npc.name}</div>
              </div>
+             
+             {/* NPC Cards Revealed at showdown */}
+             {(phase === 'showdown' || phase === 'result') && (
+               <div className="flex gap-2 animate-in zoom-in duration-500">
+                  {npc.hand.map((c, i) => (
+                    <div key={i} className="w-10 h-14 bg-white border-2 border-rust-900 rounded flex items-center justify-center text-xs font-bold text-rust-900">
+                      {c.rank}{c.suit}
+                    </div>
+                  ))}
+               </div>
+             )}
+
              {npcChat.startsWith(npc.name) && (
-               <div className="panel-pixel py-3 px-5 bg-white text-rust-900 text-sm italic animate-in fade-in slide-in-from-top duration-500 shadow-none border-4 border-rust-900 relative">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[10px] border-b-rust-900"></div>
+               <div className="panel-pixel py-4 px-6 bg-white text-rust-900 text-base italic animate-in fade-in slide-in-from-top duration-500 shadow-none border-4 border-rust-900 relative max-w-[200px] text-center">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[12px] border-b-rust-900"></div>
                   &quot;{npcChat.split(': "')[1]?.replace('"', '')}&quot;
                </div>
              )}
@@ -154,60 +200,61 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       </div>
 
       {/* Table Center */}
-      <div className="panel-pixel bg-green-950/60 border-sand-400 min-h-[400px] flex flex-col items-center justify-center relative space-y-10 shadow-[0_0_100px_rgba(0,0,0,0.8)_inset]">
-        <div className="absolute top-6 left-6 font-heading text-sand-500 opacity-60 uppercase tracking-widest text-lg">Community Pot: 💰 {pot}</div>
+      <div className="panel-pixel bg-green-950/60 border-sand-400 min-h-[450px] flex flex-col items-center justify-center relative space-y-12 shadow-[0_0_150px_rgba(0,0,0,0.9)_inset]">
+        <div className="absolute top-8 left-8 font-heading text-sand-500 opacity-60 uppercase tracking-[0.3em] text-2xl">Pot: 💰 {pot}</div>
         
-        {/* Community Cards */}
-        <div className="flex gap-6">
+        <div className="flex gap-8">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className={`w-24 h-36 rounded-lg border-4 flex items-center justify-center text-2xl font-bold transition-all duration-500 shadow-xl ${communityCards[i] ? 'bg-white text-rust-900 border-sand-300 scale-100' : 'bg-rust-900/30 border-rust-900 border-dashed scale-95 opacity-30'}`}>
+            <div key={i} className={`w-28 h-40 rounded-xl border-4 flex items-center justify-center text-3xl font-bold transition-all duration-700 shadow-2xl ${communityCards[i] ? 'bg-white text-rust-900 border-sand-200 scale-105' : 'bg-rust-900/30 border-rust-900 border-dashed scale-95 opacity-20'}`}>
                {communityCards[i] ? `${communityCards[i].rank}${communityCards[i].suit}` : ''}
             </div>
           ))}
         </div>
 
-        <div className="text-3xl font-heading text-terracotta-400 tracking-[0.2em] animate-pulse text-center px-4 leading-relaxed">{message}</div>
+        <div className="text-4xl font-heading text-terracotta-400 tracking-[0.2em] animate-pulse text-center px-12 leading-relaxed h-12 flex items-center">
+          {message}
+        </div>
       </div>
 
       {/* Player Area */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-12 pt-12">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-16 pt-16">
         
-        <div className="flex items-center gap-10">
-          <div className="panel-pixel p-6 bg-rust-950/90 border-sand-400 shadow-none text-center space-y-4">
-             <p className="text-xs uppercase text-sand-500 font-bold tracking-widest">Your Hand</p>
-             <div className="flex gap-4">
-                {playerHand.map((card, i) => (
-                  <div key={i} className="w-20 h-32 bg-white border-4 border-rust-900 rounded-lg flex items-center justify-center text-xl font-bold text-rust-900 animate-in zoom-in duration-500 shadow-lg">
-                    {card.rank}{card.suit}
-                  </div>
-                ))}
-                {playerHand.length === 0 && <div className="w-44 h-32 border-4 border-rust-900 border-dashed rounded-lg opacity-10"></div>}
-             </div>
-          </div>
+        <div className="panel-pixel p-10 bg-rust-950/90 border-sand-400 shadow-none text-center space-y-6 shrink-0 min-w-[300px]">
+           <p className="text-sm uppercase text-sand-500 font-bold tracking-[0.3em]">Your Hole Cards</p>
+           <div className="flex gap-6 justify-center">
+              {playerHand.map((card, i) => (
+                <div key={i} className="w-24 h-36 bg-white border-4 border-rust-900 rounded-xl flex items-center justify-center text-3xl font-bold text-rust-900 animate-in zoom-in duration-700 shadow-2xl hover:scale-110 transition-transform">
+                  {card.rank}{card.suit}
+                </div>
+              ))}
+              {playerHand.length === 0 && <div className="w-56 h-36 border-4 border-rust-900 border-dashed rounded-xl opacity-10"></div>}
+           </div>
         </div>
 
-        <div className="flex-1 max-w-lg w-full">
+        <div className="flex-1 max-w-2xl w-full">
            {phase === 'betting' ? (
-             <div className="panel-pixel space-y-8 bg-rust-900/50">
-                <div className="flex justify-between items-center text-lg uppercase font-bold text-sand-500 tracking-widest">
-                   <span>Set Ante</span>
-                   <span className="text-sand-200 text-2xl">💰 {bet}</span>
+             <div className="panel-pixel space-y-10 bg-rust-900/50 flex flex-col items-center">
+                <div className="flex justify-between items-center w-full text-xl uppercase font-bold text-sand-500 tracking-widest">
+                   <span>Initial Ante</span>
+                   <span className="text-sand-200 text-4xl">💰 {bet}</span>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-4 w-full">
                    {[10, 25, 50, 100].map(val => (
-                     <button key={val} onClick={() => setBet(val)} className={`btn-pixel text-xs flex-1 py-4 px-0 ${bet === val ? 'bg-sand-400 text-rust-950 border-sand-600' : 'bg-rust-800 border-rust-950 opacity-70 hover:opacity-100'}`}>{val}</button>
+                     <button key={val} onClick={() => setBet(val)} className={`btn-pixel text-sm flex-1 py-5 px-0 ${bet === val ? 'bg-sand-400 text-rust-950' : 'bg-rust-800'}`}>{val}</button>
                    ))}
                 </div>
-                <button onClick={startRound} className="btn-pixel w-full py-6 text-2xl tracking-[0.3em] font-heading">BUY IN</button>
+                <button onClick={startRound} className="btn-pixel w-full py-8 text-3xl tracking-[0.4em] font-heading">TAKE A SEAT</button>
              </div>
            ) : phase === 'result' ? (
-             <button onClick={() => { setPhase('betting'); setHand([]); setCommunity([]); setMessage('Care for another round?'); }} className="btn-pixel w-full py-8 text-2xl tracking-[0.2em] font-heading">PLAY AGAIN</button>
+             <button onClick={() => { setPhase('betting'); setHand([]); setCommunity([]); setMessage('Want to go again?'); setNpcChat(''); }} className="btn-pixel w-full py-10 text-3xl tracking-[0.3em] font-heading">PLAY ANOTHER ROUND</button>
            ) : (
-             <button onClick={nextPhase} disabled={loading} className="btn-pixel w-full py-8 text-2xl tracking-[0.2em] font-heading uppercase group">
-                <span className="group-hover:scale-110 transition-transform inline-block">
-                  {phase === 'showdown' ? '💥 SHOWDOWN 💥' : `NEXT PHASE: ${phase}`}
-                </span>
-             </button>
+             <div className="grid grid-cols-2 gap-6 w-full">
+                <button onClick={() => handleAction('fold')} className="btn-pixel bg-rust-800 border-rust-950 text-sand-600 text-sm py-6">FOLD</button>
+                <button onClick={() => handleAction('check')} className="btn-pixel bg-sand-400 text-rust-900 border-sand-600 text-sm py-6 uppercase tracking-widest">
+                   {phase === 'showdown' ? 'SHOWDOWN' : 'CHECK / CALL'}
+                </button>
+                <button onClick={() => handleAction('raise')} className="btn-pixel bg-terracotta-400 text-rust-900 border-terracotta-600 text-sm py-6 col-span-2 uppercase tracking-[0.2em] font-bold">RAISE STAKES (x2)</button>
+             </div>
            )}
         </div>
 
