@@ -15,26 +15,28 @@ export async function GET(request: Request) {
       const userId = data.user.id;
       const guildId = process.env.DISCORD_GUILD_ID;
 
-      if (providerToken && guildId) {
+      if (guildId && process.env.DISCORD_BOT_TOKEN) {
         try {
-          // Fetch user's member data for the specific guild
-          const response = await fetch(`https://discord.com/api/users/@me/guilds/${guildId}/member`, {
-            headers: { Authorization: `Bearer ${providerToken}` }
+          const discordUserId = data.user.app_metadata.provider_id || data.user.user_metadata.provider_id;
+          
+          // Fetch user's member data using BOT TOKEN
+          const response = await fetch(`https://discord.com/api/guilds/${guildId}/members/${discordUserId}`, {
+            headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` }
           });
           
           if (response.ok) {
             const memberData = await response.json();
-            // Fetch guild roles to match names
+            
+            // Fetch guild roles using BOT TOKEN
             const rolesResponse = await fetch(`https://discord.com/api/guilds/${guildId}/roles`, {
-              headers: { Authorization: `Bearer ${providerToken}` }
+              headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` }
             });
             
             let finalRole = 'Farmer';
             if (rolesResponse.ok) {
               const guildRoles = await rolesResponse.json();
-              const userRoles = memberData.roles; // Array of role IDs
+              const userRoles = memberData.roles;
               
-              // Check if any of the user's roles match "Sheriff"
               const hasSheriffRole = guildRoles.some((role: any) => 
                 userRoles.includes(role.id) && role.name === 'Sheriff'
               );
@@ -42,14 +44,13 @@ export async function GET(request: Request) {
               if (hasSheriffRole) finalRole = 'Sheriff';
             }
 
-            // Update the profile in the database
             await supabase
               .from('profiles')
               .update({ role: finalRole })
               .eq('id', userId);
           }
         } catch (err) {
-          console.error('Discord Role Check Failed:', err);
+          console.error('Discord Bot Role Check Failed:', err);
         }
       }
       
