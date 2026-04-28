@@ -11,7 +11,6 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error && data.session) {
-      const providerToken = data.session.provider_token;
       const userId = data.user.id;
       const guildId = process.env.DISCORD_GUILD_ID;
 
@@ -37,10 +36,14 @@ export async function GET(request: Request) {
             
             let finalRole = 'Farmer';
             if (rolesResponse.ok) {
-              const guildRoles = await rolesResponse.json();
-              const userRoles = memberData.roles;
+              interface DiscordRole {
+                id: string;
+                name: string;
+              }
+              const guildRoles: DiscordRole[] = await rolesResponse.json();
+              const userRoles: string[] = memberData.roles;
               
-              const sheriffRole = guildRoles.find((role: any) => role.name === 'Sheriff');
+              const sheriffRole = guildRoles.find((role) => role.name === 'Sheriff');
               console.log(`📜 Sheriff Role ID in Guild: ${sheriffRole?.id || 'NOT FOUND'}`);
 
               const hasSheriffRole = sheriffRole && userRoles.includes(sheriffRole.id);
