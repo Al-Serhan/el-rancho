@@ -41,15 +41,15 @@ async function seed() {
     }
   }
 
-  // 2. Try to find user sheriff6969
+  // 2. Try to find user thesheriff6969
   const { data: profile } = await supabase
     .from('profiles')
     .select('id')
-    .eq('username', 'sheriff6969')
+    .eq('username', 'thesheriff6969')
     .maybeSingle();
 
   if (profile) {
-    console.log(`👤 Found user sheriff6969 (ID: ${profile.id}). Assigning cards...`);
+    console.log(`👤 Found user thesheriff6969 (ID: ${profile.id}). Assigning cards...`);
     const inventoryItems = insertedCards.map(card => ({
       user_id: profile.id,
       card_id: card.id
@@ -59,10 +59,10 @@ async function seed() {
     if (invError) {
       console.error('Error assigning cards:', invError.message);
     } else {
-      console.log('✨ All cards assigned to sheriff6969 successfully!');
+      console.log('✨ All cards assigned to thesheriff6969 successfully!');
     }
   } else {
-    console.log('⚠️ User "sheriff6969" not found in this database. Cards were created but not assigned.');
+    console.log('⚠️ User "thesheriff6969" not found in this database. Cards were created but not assigned.');
   }
 
   console.log('🌵 Seeding complete!');
