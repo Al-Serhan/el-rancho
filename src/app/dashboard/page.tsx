@@ -10,12 +10,15 @@ export default async function Dashboard() {
     redirect('/');
   }
 
-  // Fetch real profile data from the database
+  // Fetch real profile data from the database (force dynamic fetch)
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single();
+
+  // Add this line to ensure the page doesn't cache stale data
+  export const revalidate = 0;
 
   const role = profile?.role || 'Farmer';
   const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || '/default-avatar.png';
