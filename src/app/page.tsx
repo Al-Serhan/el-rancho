@@ -1,7 +1,16 @@
 import LoginButton from '@/components/LoginButton';
 import EmailLogin from '@/components/EmailLogin';
+import { createClient } from '@/utils/supabase/server';
+import { redirect } from 'next/navigation';
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect('/dashboard');
+  }
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-[url('/bg-desert.png')] bg-cover bg-center">
       <div className="panel-pixel max-w-xl text-center space-y-8 backdrop-blur-sm bg-rust-900/80">
