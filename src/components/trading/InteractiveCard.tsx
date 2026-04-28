@@ -30,10 +30,10 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
       `}>
         
         {/* Front of Card */}
-        <div className={`
-          absolute inset-0 backface-hidden panel-pixel flex flex-col h-full bg-rust-900/60
-          ${rarityClass}
-        `}>
+        <div 
+          className={`absolute inset-0 backface-hidden panel-pixel overflow-visible flex flex-col h-full bg-rust-900/60 ${rarityClass}`}
+          style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+        >
           <div className="aspect-square bg-rust-900 mb-6 flex items-center justify-center border-4 border-rust-700 relative overflow-hidden shrink-0">
             {card.image_url ? (
               <Image 
@@ -62,10 +62,10 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
         </div>
 
         {/* Back of Card */}
-        <div className={`
-          absolute inset-0 backface-hidden rotate-y-180 panel-pixel flex flex-col items-center justify-center h-full bg-rust-800
-          ${rarityClass}
-        `}>
+        <div 
+          className={`absolute inset-0 backface-hidden rotate-y-180 panel-pixel overflow-visible flex flex-col items-center justify-center h-full bg-rust-800 ${rarityClass}`}
+          style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+        >
           <div className="absolute inset-4 border-2 border-dashed border-sand-500/20 pointer-events-none"></div>
           
           <div className="w-24 h-24 relative mb-6 opacity-40">
