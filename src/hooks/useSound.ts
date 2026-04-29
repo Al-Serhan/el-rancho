@@ -6,6 +6,7 @@ import { useEffect, useCallback } from 'react';
 export const useSound = () => {
   const playSound = useCallback((type: 'click' | 'hover' | 'flip' | 'chip' | 'deal' | 'error' | 'win') => {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContext) return;
       const ctx = new AudioContext();
