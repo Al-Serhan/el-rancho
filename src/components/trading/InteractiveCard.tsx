@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useSound } from '@/hooks/useSound';
 
 interface InteractiveCardProps {
   card: {
