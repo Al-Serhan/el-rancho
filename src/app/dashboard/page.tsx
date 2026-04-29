@@ -22,7 +22,6 @@ export default async function Dashboard() {
   const role = profile?.role || 'Farmer';
   const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || '/default-avatar.png';
   const username = profile?.username || user.user_metadata?.full_name || 'Anonymous Cowboy';
-  const gold = profile?.gold_coins ?? 100;
 
   return (
     <main className="max-w-7xl mx-auto p-6 md:p-12 grid lg:grid-cols-12 gap-12 animate-in fade-in zoom-in-95 duration-700">

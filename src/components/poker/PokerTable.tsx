@@ -43,7 +43,6 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [bet, setBet] = useState(10);
   const [invested, setInvested] = useState(0);
   const [message, setMessage] = useState('Step up to the table, partner.');
-  const [loading, setLoading] = useState(false);
   const [npcChat, setNpcChat] = useState<string>('');
   const { playSound } = useSound();
 
@@ -190,7 +189,6 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   };
 
   const resolveShowdown = async (autoWin = false, playerFolded = false) => {
-    setLoading(true);
     const playerAll = [...playerHand, ...communityCards];
     const playerRank = evaluateHand(playerAll);
 
@@ -228,8 +226,6 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       const error = err as Error;
       alert(error.message);
       setPhase('betting');
-    } finally {
-      setLoading(false);
     }
   };
 
