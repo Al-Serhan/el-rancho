@@ -31,7 +31,7 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
         
         {/* Front of Card */}
         <div 
-          className={`absolute inset-0 backface-hidden panel-pixel overflow-visible flex flex-col h-full bg-rust-900 ${rarityClass}`}
+          className={`absolute inset-0 backface-hidden panel-pixel !p-4 overflow-hidden flex flex-col h-full bg-rust-900 ${rarityClass}`}
           style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
         >
           <div className="aspect-square bg-rust-900 mb-6 flex items-center justify-center border-4 border-rust-700 relative overflow-hidden shrink-0">
@@ -63,16 +63,16 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
 
         {/* Back of Card */}
         <div 
-          className={`absolute inset-0 backface-hidden rotate-y-180 panel-pixel overflow-visible flex flex-col items-center justify-center h-full bg-rust-800 ${rarityClass}`}
+          className={`absolute inset-0 backface-hidden rotate-y-180 panel-pixel !p-4 overflow-hidden flex flex-col items-center justify-center h-full bg-rust-800 ${rarityClass}`}
           style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
         >
           <div className="absolute inset-4 border-2 border-dashed border-sand-500/20 pointer-events-none"></div>
           
-          <div className="w-24 h-24 relative mb-6 opacity-40">
-             <Image src="/cards/card-back.svg" alt="Card Back" fill className="pixelated" unoptimized />
+          <div className="absolute inset-0 opacity-20 pointer-events-none">
+             <Image src="/cards/card-back.png" alt="Card Back" fill className="pixelated object-cover" unoptimized />
           </div>
 
-          <div className="px-6 space-y-4 text-center">
+          <div className="px-6 space-y-4 text-center relative z-10">
             <h4 className="font-heading text-sand-400 text-xl uppercase border-b-2 border-rust-900 pb-2">El Rancho Collectible Card</h4>
             <p className="text-lg text-sand-300 italic leading-relaxed font-pixel">
               &quot;{card.description || 'A tattered remnant of a forgotten era, found buried beneath the red sands of the frontier.'}&quot;

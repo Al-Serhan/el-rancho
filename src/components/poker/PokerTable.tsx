@@ -23,10 +23,13 @@ interface NPC {
   phrase: string;
 }
 
+import Image from 'next/image';
+import { useSound } from '@/hooks/useSound';
+
 const INITIAL_NPCS: NPC[] = [
-  { name: 'One-Eyed Pete', avatar: '👁️', personality: 'aggressive', hand: [], isFolded: false, phrase: 'I seen better hands in a graveyard!' },
-  { name: 'Rusty Red', avatar: '🧔', personality: 'cowardly', hand: [], isFolded: false, phrase: 'I got a bad feeling about this...' },
-  { name: 'AI Silas', avatar: '🤖', personality: 'balanced', hand: [], isFolded: false, phrase: 'Probabilities are... interesting.' }
+  { name: 'One-Eyed Pete', avatar: '/avatars/pete.png', personality: 'aggressive', hand: [], isFolded: false, phrase: 'I seen better hands in a graveyard!' },
+  { name: 'Rusty Red', avatar: '/avatars/rusty.png', personality: 'cowardly', hand: [], isFolded: false, phrase: 'I got a bad feeling about this...' },
+  { name: 'AI Silas', avatar: '/avatars/silas.png', personality: 'balanced', hand: [], isFolded: false, phrase: 'Probabilities are... interesting.' }
 ];
 
 export default function PokerTable({ initialGold }: { initialGold: number }) {
@@ -42,6 +45,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [message, setMessage] = useState('Step up to the table, partner.');
   const [loading, setLoading] = useState(false);
   const [npcChat, setNpcChat] = useState<string>('');
+  const { playSound } = useSound();
 
   const createDeck = () => {
     const newDeck: Card[] = [];
@@ -75,6 +79,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     setPhase('preflop');
     setMessage('The cards are dealt. Your move.');
     setNpcChat('One-Eyed Pete: "I\'m in. Let\'s see what you got."');
+    playSound('deal');
   };
 
   const handleAction = async (action: 'fold' | 'check' | 'call' | 'raise') => {
@@ -156,9 +161,30 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     const npc = activeNpcs[Math.floor(Math.random() * activeNpcs.length)];
     
     let reactions = ['I\'ll stay.', 'Next card, dealer.', 'Hmm.'];
-    if (npc.personality === 'aggressive') reactions = ['You trying to buy this pot?', 'I seen better hands in a graveyard!', 'Raise it up!', 'Don\'t blink, kid.'];
-    if (npc.personality === 'cowardly') reactions = ['I got a bad feeling about this...', 'The desert sun is getting to ya.', 'Is it hot in here?', 'I\'m just here for the sarsaparilla.'];
-    if (npc.personality === 'balanced') reactions = ['Interesting move...', 'Probabilities are... interesting.', 'Show me the next one.', 'Fair enough.'];
+    if (npc.personality === 'aggressive') reactions = [
+      'You trying to buy this pot?', 
+      'I seen better hands in a graveyard!', 
+      'Raise it up, coward!', 
+      'Don\'t blink, kid. I can smell your fear.',
+      'My horse plays better poker than you.',
+      'Are you gonna bet or just sit there lookin\' pretty?'
+    ];
+    if (npc.personality === 'cowardly') reactions = [
+      'I got a bad feeling about this...', 
+      'The desert sun is getting to ya.', 
+      'Is it hot in here? I\'m sweatin\' bullets.', 
+      'I\'m just here for the sarsaparilla.',
+      'Please don\'t take all my gold, I got a mule to feed.',
+      'Fold? Me? No, just... resting my eyes.'
+    ];
+    if (npc.personality === 'balanced') reactions = [
+      'Interesting move... statistically unwise, but interesting.', 
+      'Probabilities suggest you are bluffing 87.3% of the time.', 
+      'Show me the next one. My circuits are ready.', 
+      'Fair enough. I have calculated all outcomes.',
+      'Your heart rate elevated when you checked. Fascinating.',
+      'Processing bet... Acceptable risk parameter.'
+    ];
     
     setNpcChat(`${npc.name}: "${reactions[Math.floor(Math.random() * reactions.length)]}"`);
   };
@@ -192,8 +218,10 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         setMessage('You folded. Better luck next time.');
       } else if (isWinner) {
         setMessage(autoWin ? 'WINNER! Everyone folded.' : `WINNER! ${playerRank.label}. You took the pot!`);
+        playSound('win');
       } else {
         setMessage(`LOSE. ${playerRank.label} wasn't enough.`);
+        playSound('error');
       }
       setPhase('result');
     } catch (err: unknown) {
@@ -283,8 +311,8 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       <div className="grid grid-cols-3 gap-12">
         {npcs.map(npc => (
           <div key={npc.name} className="flex flex-col items-center space-y-6">
-             <div className={`w-32 h-32 bg-rust-950 border-8 flex items-center justify-center text-6xl relative shadow-2xl transition-all ${npc.isFolded ? 'opacity-30 grayscale border-rust-900' : 'border-sand-400'}`}>
-                {npc.avatar}
+             <div className={`w-32 h-32 bg-rust-950 border-8 flex items-center justify-center relative shadow-2xl transition-all overflow-hidden ${npc.isFolded ? 'opacity-30 grayscale border-rust-900' : 'border-sand-400'}`}>
+                <Image src={npc.avatar} alt={npc.name} fill className="pixelated object-cover" unoptimized />
                 <div className="absolute -bottom-3 bg-terracotta-400 text-rust-950 px-4 py-1 text-base font-bold uppercase tracking-widest border-2 border-rust-900">{npc.name}</div>
              </div>
              

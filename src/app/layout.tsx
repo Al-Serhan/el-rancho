@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { VT323, Press_Start_2P } from "next/font/google";
 import "./globals.css";
+import { GlobalSoundListener } from "@/hooks/useSound";
 
 const vt323 = VT323({
   variable: "--font-vt323",
@@ -31,6 +32,7 @@ export default function RootLayout({
       >
         <div className="dust-overlay"></div>
         <div className="scanline"></div>
+        <GlobalSoundListener />
         {children}
       </body>
     </html>
