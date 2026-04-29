@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { revalidatePath } from 'next/cache';
 
-export async function resolvePokerGame(bet: number, multiplier: number) {
+export async function resolvePokerGame(invested: number, winnings: number) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -25,20 +25,15 @@ export async function resolvePokerGame(bet: number, multiplier: number) {
     throw new Error('Could not fetch profile');
   }
 
-  // 2. Validate bet
-  if (profile.gold_coins < bet) {
-    throw new Error('Insufficient gold coins');
-  }
-
-  // 3. Calculate new balance
-  // If multiplier is 0, they lose the bet.
-  // If multiplier is > 0, they get (bet * multiplier). 
-  // For Jacks or Better: Jacks = 1x (money back), Two Pair = 2x, etc.
-  const winnings = Math.floor(bet * multiplier);
-  const netChange = winnings - bet;
+  // 2. Calculate net change
+  const netChange = winnings - invested;
   const newBalance = profile.gold_coins + netChange;
 
-  // 4. Update database
+  if (newBalance < 0) {
+    throw new Error('Insufficient gold coins for this action');
+  }
+
+  // 3. Update database
   const { error: updateError } = await adminSupabase
     .from('profiles')
     .update({ gold_coins: newBalance })

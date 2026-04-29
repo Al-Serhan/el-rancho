@@ -48,7 +48,7 @@ export default async function Dashboard() {
           </div>
 
           <div className="w-full pt-8 border-t-2 border-rust-900/50 flex flex-col gap-4 px-6">
-             <div className="flex justify-between items-center text-xs uppercase text-sand-500 font-bold">
+             <div className="flex justify-between items-center text-lg uppercase text-sand-500 font-bold">
                <span>Town Status</span>
                <span>Honorable</span>
              </div>
@@ -79,7 +79,7 @@ export default async function Dashboard() {
             <div className="panel-pixel h-full hover:border-terracotta-400 hover:translate-x-1 hover:-translate-y-1 transition-all bg-rust-800 border-sand-400/40 py-16 flex flex-col items-center justify-center space-y-6">
               <div className="text-6xl group-hover:scale-110 transition-transform">🤝</div>
               <h2 className="text-3xl font-heading tracking-widest text-sand-300 group-hover:text-terracotta-400 transition-colors">TRADING POST</h2>
-              <p className="text-xs text-sand-600 text-center px-8 uppercase font-bold tracking-tight">Swap your legendary artifacts.</p>
+              <p className="text-lg text-sand-600 text-center px-8 uppercase font-bold tracking-tight">Swap your legendary artifacts.</p>
             </div>
           </Link>
 
@@ -87,7 +87,7 @@ export default async function Dashboard() {
             <div className="panel-pixel h-full hover:border-sand-300 hover:translate-x-1 hover:-translate-y-1 transition-all bg-rust-800 border-sand-400/40 py-16 flex flex-col items-center justify-center space-y-6">
               <div className="text-6xl group-hover:scale-110 transition-transform">🃏</div>
               <h2 className="text-3xl font-heading tracking-widest text-sand-300 group-hover:text-sand-300 transition-colors uppercase">My Vault</h2>
-              <p className="text-xs text-sand-600 text-center px-8 uppercase font-bold tracking-tight">Browse your card stash.</p>
+              <p className="text-lg text-sand-600 text-center px-8 uppercase font-bold tracking-tight">Browse your card stash.</p>
             </div>
           </Link>
 
@@ -95,7 +95,7 @@ export default async function Dashboard() {
             <div className="panel-pixel h-full hover:border-green-500 hover:translate-x-1 hover:-translate-y-1 transition-all bg-rust-800 border-sand-400/40 py-16 flex flex-col items-center justify-center space-y-6">
               <div className="text-6xl group-hover:scale-110 transition-transform">🎲</div>
               <h2 className="text-3xl font-heading tracking-widest text-sand-300 group-hover:text-green-500 transition-colors uppercase">The Saloon</h2>
-              <p className="text-xs text-sand-600 text-center px-8 uppercase font-bold tracking-tight">Win gold in Texas Hold&apos;em.</p>
+              <p className="text-lg text-sand-600 text-center px-8 uppercase font-bold tracking-tight">Win gold in Texas Hold&apos;em.</p>
             </div>
           </Link>
 
@@ -103,7 +103,7 @@ export default async function Dashboard() {
             <div className="panel-pixel h-full hover:border-yellow-400 hover:translate-x-1 hover:-translate-y-1 transition-all bg-rust-800 border-sand-400/40 py-16 flex flex-col items-center justify-center space-y-6">
               <div className="text-6xl group-hover:scale-110 transition-transform">🥇</div>
               <h2 className="text-3xl font-heading tracking-widest text-sand-300 group-hover:text-yellow-400 transition-colors uppercase">Hall of Fame</h2>
-              <p className="text-xs text-sand-600 text-center px-8 uppercase font-bold tracking-tight">The town&apos;s wealthiest drifters.</p>
+              <p className="text-lg text-sand-600 text-center px-8 uppercase font-bold tracking-tight">The town&apos;s wealthiest drifters.</p>
             </div>
           </Link>
         </div>
@@ -111,20 +111,20 @@ export default async function Dashboard() {
         <div className="panel-pixel border-rust-900 bg-rust-950/30 py-12">
           <div className="flex justify-between items-center border-b-4 border-rust-900 pb-4 mb-8">
             <h2 className="text-3xl font-heading tracking-[0.2em] text-terracotta-400 uppercase">Dispatch</h2>
-            <span className="text-xs bg-terracotta-400 text-rust-950 px-3 py-1 font-bold uppercase tracking-widest">Live</span>
+            <span className="text-lg bg-terracotta-400 text-rust-950 px-3 py-1 font-bold uppercase tracking-widest">Live</span>
           </div>
           <div className="space-y-10">
             <div className="flex gap-6 items-start">
                <div className="w-16 h-16 bg-rust-800 border-4 border-sand-400/20 shrink-0 flex items-center justify-center text-4xl">🌵</div>
                <div className="space-y-2 pt-1">
-                 <p className="text-xs text-sand-600 font-bold uppercase tracking-[0.2em]">APRIL 28, 2026</p>
+                 <p className="text-lg text-sand-600 font-bold uppercase tracking-[0.2em]">APRIL 28, 2026</p>
                  <p className="text-xl text-sand-200 leading-tight">Expansion pack &quot;Frontier Legends&quot; is now live. Claim yours at the Vault.</p>
                </div>
             </div>
             <div className="flex gap-6 items-start">
                <div className="w-16 h-16 bg-rust-800 border-4 border-sand-400/20 shrink-0 flex items-center justify-center text-4xl">💰</div>
                <div className="space-y-2 pt-1">
-                 <p className="text-xs text-sand-600 font-bold uppercase tracking-[0.2em]">APRIL 27, 2026</p>
+                 <p className="text-lg text-sand-600 font-bold uppercase tracking-[0.2em]">APRIL 27, 2026</p>
                  <p className="text-xl text-sand-200 leading-tight">Gold mining is at an all-time high. Poker stakes are rising in the local Saloon.</p>
                </div>
             </div>

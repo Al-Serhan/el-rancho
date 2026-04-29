@@ -69,12 +69,12 @@ export default async function CollectionPage() {
     <main className="max-w-7xl mx-auto p-4 md:p-8 space-y-12 animate-in slide-in-from-bottom duration-500 mb-20">
       <div className="flex flex-col md:flex-row justify-between items-center md:items-end border-b-8 border-rust-900 pb-6 gap-6">
         <div className="text-center md:text-left space-y-2">
-          <p className="text-terracotta-400 text-sm uppercase tracking-[0.3em] font-bold">The Great Vault</p>
+          <p className="text-terracotta-400 text-xl uppercase tracking-[0.3em] font-bold">The Great Vault</p>
           <h1 className="text-5xl font-heading uppercase tracking-tighter">Your Collection</h1>
           {isSheriff && <SheriffGrantButton />}
         </div>
         <div className="text-center md:text-right bg-rust-950/50 p-4 border-2 border-sand-500/20 panel-pixel shadow-none">
-          <p className="text-xs text-sand-500 uppercase tracking-widest mb-1">Authenticated Artifacts</p>
+          <p className="text-lg text-sand-500 uppercase tracking-widest mb-1">Authenticated Artifacts</p>
           <p className="text-4xl text-sand-300 font-heading">{sortedCards.length}</p>
         </div>
       </div>

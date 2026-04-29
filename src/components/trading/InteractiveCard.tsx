@@ -46,16 +46,16 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
             ) : (
               <span className="text-6xl">🃏</span>
             )}
-            <div className={`absolute bottom-0 left-0 right-0 bg-rust-900/90 p-2 text-sm text-center uppercase border-t-2 border-rust-700 tracking-tighter ${rarityTextClass}`}>
+            <div className={`absolute bottom-0 left-0 right-0 bg-rust-900/90 p-2 text-lg text-center uppercase border-t-2 border-rust-700 tracking-tighter ${rarityTextClass}`}>
               {card.rarity}
             </div>
           </div>
           <div className="flex-1 flex flex-col justify-center items-center space-y-4 px-2">
-            <h3 className="text-xl text-center font-heading text-sand-200 uppercase tracking-widest">{card.name}</h3>
-            <p className={`text-sm text-center uppercase tracking-[0.2em] font-bold ${rarityTextClass}`}>
+            <h3 className="text-3xl text-center font-heading text-sand-200 uppercase tracking-widest">{card.name}</h3>
+            <p className={`text-xl text-center uppercase tracking-[0.2em] font-bold ${rarityTextClass}`}>
               {card.special_attribute}
             </p>
-            <div className="pt-4 opacity-40 text-[10px] uppercase font-bold tracking-widest animate-pulse">
+            <div className="pt-4 opacity-40 text-base uppercase font-bold tracking-widest animate-pulse">
               Click to Flip
             </div>
           </div>
@@ -79,7 +79,7 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
             </p>
           </div>
 
-          <div className="mt-8 text-[10px] text-sand-600 uppercase tracking-[0.3em] font-bold">
+          <div className="mt-8 text-sm text-sand-600 uppercase tracking-[0.3em] font-bold">
             Property of El Rancho
           </div>
         </div>

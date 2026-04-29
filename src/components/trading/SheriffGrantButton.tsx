@@ -26,7 +26,7 @@ export default function SheriffGrantButton() {
     <button 
       onClick={handleGrant} 
       disabled={loading}
-      className="btn-pixel bg-rust-900 text-terracotta-400 border-terracotta-400 px-4 py-2 text-[10px] mt-4"
+      className="btn-pixel w-full bg-rust-900 text-terracotta-400 border-terracotta-400 mt-4"
     >
       {loading ? 'INVOKING...' : '⚙️ ADMIN: GRANT ALL CARDS'}
     </button>

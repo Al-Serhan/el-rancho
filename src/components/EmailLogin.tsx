@@ -49,7 +49,7 @@ export default function EmailLogin() {
         <button 
           type="submit" 
           disabled={loading}
-          className="btn-pixel text-xs py-2 bg-sand-400 border-sand-600"
+          className="btn-pixel w-full bg-sand-400 border-sand-600"
         >
           {loading ? 'Entering...' : 'Enter the Rancho'}
         </button>

@@ -22,10 +22,10 @@ export default async function PokerPage() {
     <main className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-center border-b-8 border-rust-900 pb-4 gap-4">
         <div>
-          <p className="text-terracotta-400 text-sm uppercase mb-1">The Saloon</p>
+          <p className="text-terracotta-400 text-xl uppercase mb-1">The Saloon</p>
           <h1 className="text-3xl">Poker Room</h1>
         </div>
-        <p className="text-xs text-sand-500 max-w-xs text-center md:text-right">
+        <p className="text-lg text-sand-500 max-w-xs text-center md:text-right">
           Test your luck, partner. Jacks or better to win. High stakes, high rewards.
         </p>
       </div>

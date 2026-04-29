@@ -35,10 +35,10 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [playerHand, setHand] = useState<Card[]>([]);
   const [communityCards, setCommunity] = useState<Card[]>([]);
   const [npcs, setNpcs] = useState<NPC[]>(INITIAL_NPCS);
-  const [phase, setPhase] = useState<'betting' | 'flop' | 'turn' | 'river' | 'showdown' | 'result'>('betting');
+  const [phase, setPhase] = useState<'betting' | 'preflop' | 'flop' | 'turn' | 'river' | 'showdown' | 'result'>('betting');
   const [pot, setPot] = useState(0);
   const [bet, setBet] = useState(10);
-  const [currentCall, setCurrentCall] = useState(0);
+  const [invested, setInvested] = useState(0);
   const [message, setMessage] = useState('Step up to the table, partner.');
   const [loading, setLoading] = useState(false);
   const [npcChat, setNpcChat] = useState<string>('');
@@ -71,8 +71,8 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     setCommunity([]);
     setPot(bet * 4);
     setGold(prev => prev - bet);
-    setCurrentCall(bet);
-    setPhase('flop');
+    setInvested(bet);
+    setPhase('preflop');
     setMessage('The cards are dealt. Your move.');
     setNpcChat('One-Eyed Pete: "I\'m in. Let\'s see what you got."');
   };
@@ -80,29 +80,69 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const handleAction = async (action: 'fold' | 'check' | 'call' | 'raise') => {
     if (action === 'fold') {
       setMessage('You folded. The Saloon takes your ante.');
-      setPhase('result');
+      await resolveShowdown(false, true);
       return;
     }
 
     if (action === 'raise') {
       const raiseAmt = bet * 2;
       if (gold < raiseAmt) return alert('Not enough gold to raise!');
+      
       setGold(prev => prev - raiseAmt);
-      setPot(prev => prev + raiseAmt + (raiseAmt * 3)); // NPCs match
-      setMessage(`You raised to ${raiseAmt}!`);
+      setInvested(prev => prev + raiseAmt);
+      
+      let foldCount = 0;
+      const updatedNpcs = npcs.map(npc => {
+        if (npc.isFolded) return npc;
+        
+        const npcAll = [...npc.hand, ...communityCards];
+        const rank = evaluateHand(npcAll);
+        
+        // Thresholds based on new scoring (Category * 1,000,000)
+        let foldThreshold = 10000; // High Card
+        if (npc.personality === 'cowardly') foldThreshold = 1100000; // Pair of Jacks or better-ish
+        if (npc.personality === 'balanced') foldThreshold = 1000000; // Any pair
+        if (npc.personality === 'aggressive') foldThreshold = 0; // Never fold
+        
+        if (rank.score < foldThreshold) {
+          foldCount++;
+          return { ...npc, isFolded: true };
+        }
+        return npc;
+      });
+      
+      setNpcs(updatedNpcs);
+      const activeNpcs = updatedNpcs.filter(n => !n.isFolded);
+      setPot(prev => prev + raiseAmt + (raiseAmt * activeNpcs.length));
+      
+      if (activeNpcs.length === 0) {
+        setMessage('Everyone folded! The pot is yours.');
+        await resolveShowdown(true);
+        return;
+      }
+
+      setMessage(`You raised to ${raiseAmt}! ${foldCount > 0 ? `${foldCount} folded.` : 'Everyone calls.'}`);
+      triggerNpcReaction(updatedNpcs);
+      return;
     }
 
-    // Progress game
+    // Progress game on Check/Call
     const newDeck = [...deck];
-    if (phase === 'flop') {
+    if (phase === 'preflop') {
       setCommunity(newDeck.splice(0, 3));
+      setPhase('flop');
+      setMessage('The flop is dealt. What\'s your move?');
+    } else if (phase === 'flop') {
+      setCommunity(prev => [...prev, ...newDeck.splice(0, 1)]);
       setPhase('turn');
+      setMessage('The turn is out. Stakes are rising.');
     } else if (phase === 'turn') {
-      setCommunity(prev => [...prev, newDeck.splice(0, 1)[0]]);
+      setCommunity(prev => [...prev, ...newDeck.splice(0, 1)]);
       setPhase('river');
+      setMessage('The river has run dry. One last chance.');
     } else if (phase === 'river') {
-      setCommunity(prev => [...prev, newDeck.splice(0, 1)[0]]);
       setPhase('showdown');
+      setMessage('Showdown! Let\'s see those cards.');
     } else if (phase === 'showdown') {
       await resolveShowdown();
     }
@@ -110,38 +150,48 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     triggerNpcReaction();
   };
 
-  const triggerNpcReaction = () => {
-    const activeNpcs = npcs.filter(n => !n.isFolded);
+  const triggerNpcReaction = (currentNpcs = npcs) => {
+    const activeNpcs = currentNpcs.filter(n => !n.isFolded);
+    if (activeNpcs.length === 0) return;
     const npc = activeNpcs[Math.floor(Math.random() * activeNpcs.length)];
-    const reactions = [
-      'Interesting move...',
-      'You bluffing, boy?',
-      'The desert sun is getting to ya.',
-      'I\'ll stay for now.',
-      'Show me the next one, dealer!'
-    ];
+    
+    let reactions = ['I\'ll stay.', 'Next card, dealer.', 'Hmm.'];
+    if (npc.personality === 'aggressive') reactions = ['You trying to buy this pot?', 'I seen better hands in a graveyard!', 'Raise it up!', 'Don\'t blink, kid.'];
+    if (npc.personality === 'cowardly') reactions = ['I got a bad feeling about this...', 'The desert sun is getting to ya.', 'Is it hot in here?', 'I\'m just here for the sarsaparilla.'];
+    if (npc.personality === 'balanced') reactions = ['Interesting move...', 'Probabilities are... interesting.', 'Show me the next one.', 'Fair enough.'];
+    
     setNpcChat(`${npc.name}: "${reactions[Math.floor(Math.random() * reactions.length)]}"`);
   };
 
-  const resolveShowdown = async () => {
+  const resolveShowdown = async (autoWin = false, playerFolded = false) => {
     setLoading(true);
     const playerAll = [...playerHand, ...communityCards];
     const playerRank = evaluateHand(playerAll);
 
-    let winCount = 0;
-    npcs.forEach(npc => {
-      const npcAll = [...npc.hand, ...communityCards];
-      if (playerRank.score > evaluateHand(npcAll).score) winCount++;
-    });
+    const npcResults = npcs.filter(n => !n.isFolded).map(npc => ({
+      name: npc.name,
+      rank: evaluateHand([...npc.hand, ...communityCards])
+    }));
 
-    const isWinner = winCount >= 2; // Win if better than at least 2 NPCs
-    const multiplier = isWinner ? 3 : 0;
+    let isWinner = false;
+    if (playerFolded) {
+      isWinner = false;
+    } else if (autoWin || npcResults.length === 0) {
+      isWinner = true;
+    } else {
+      const bestNpc = npcResults.reduce((prev, curr) => (prev.rank.score > curr.rank.score) ? prev : curr);
+      isWinner = playerRank.score >= bestNpc.rank.score;
+    }
+
+    const winnings = isWinner ? pot : 0;
 
     try {
-      const result = await resolvePokerGame(bet, multiplier);
+      const result = await resolvePokerGame(invested, winnings);
       setGold(result.newBalance);
-      if (isWinner) {
-        setMessage(`WINNER! ${playerRank.label}. You took the pot!`);
+      if (playerFolded) {
+        setMessage('You folded. Better luck next time.');
+      } else if (isWinner) {
+        setMessage(autoWin ? 'WINNER! Everyone folded.' : `WINNER! ${playerRank.label}. You took the pot!`);
       } else {
         setMessage(`LOSE. ${playerRank.label} wasn't enough.`);
       }
@@ -155,15 +205,75 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     }
   };
 
-  const evaluateHand = (cards: Card[]) => {
+  const getSuitColor = (suit: Suit) => (suit === '♥' || suit === '♦') ? 'text-red-600' : 'text-rust-900';
+
+  const evaluateHand = (handCards: Card[]) => {
+    if (handCards.length < 2) return { score: 0, label: 'Evaluating...' };
+
+    const rV: Record<Rank, number> = {
+      '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
+      'J': 11, 'Q': 12, 'K': 13, 'A': 14
+    };
+
     const counts: Record<string, number> = {};
-    cards.forEach(c => counts[c.rank] = (counts[c.rank] || 0) + 1);
-    const pairs = Object.entries(counts).filter(([_, count]) => count >= 2);
-    
-    if (pairs.length >= 3) return { score: 30, label: 'Three Pair or Better' };
-    if (pairs.length === 2) return { score: 20, label: 'Two Pair' };
-    if (pairs.length === 1) return { score: 10, label: 'One Pair' };
-    return { score: 5, label: 'High Card' };
+    const suitCounts: Record<Suit, number> = { '♠': 0, '♥': 0, '♦': 0, '♣': 0 };
+    handCards.forEach(c => {
+      counts[c.rank] = (counts[c.rank] || 0) + 1;
+      suitCounts[c.suit]++;
+    });
+
+    const ranks = handCards.map(c => rV[c.rank]).sort((a, b) => b - a);
+    const uR = Array.from(new Set(ranks)).sort((a, b) => b - a);
+
+    // Categories: 8: SF, 7: 4K, 6: FH, 5: Flush, 4: Straight, 3: 3K, 2: 2P, 1: 1P, 0: HC
+    let category = 0;
+    let label = 'High Card';
+    let mainRank = ranks[0];
+    let secondaryRank = 0;
+
+    // Check Flush
+    let flushSuit: Suit | null = null;
+    for (const suit of SUITS) { if (suitCounts[suit] >= 5) flushSuit = suit; }
+
+    // Check Straight
+    let isStraight = false;
+    let straightHigh = 0;
+    for (let i = 0; i <= uR.length - 5; i++) {
+      if (uR[i] - uR[i+4] === 4) { isStraight = true; straightHigh = uR[i]; break; }
+    }
+    if (!isStraight && uR.includes(14) && uR.includes(2) && uR.includes(3) && uR.includes(4) && uR.includes(5)) {
+      isStraight = true; straightHigh = 5;
+    }
+
+    // Straight Flush
+    if (flushSuit && isStraight) {
+      const fR = handCards.filter(c => c.suit === flushSuit).map(c => rV[c.rank]).sort((a, b) => b - a);
+      const fuR = Array.from(new Set(fR));
+      for (let i = 0; i <= fuR.length - 5; i++) {
+        if (fuR[i] - fuR[i+4] === 4) { category = 8; straightHigh = fuR[i]; break; }
+      }
+      if (category === 0 && fuR.includes(14) && fuR.includes(2) && fuR.includes(3) && fuR.includes(4) && fuR.includes(5)) {
+        category = 8; straightHigh = 5;
+      }
+      if (category === 8) { label = 'Straight Flush'; mainRank = straightHigh; }
+    }
+
+    if (category === 0) {
+      const entries = Object.entries(counts).map(([rank, count]) => ({ rank: rV[rank as Rank], count })).sort((a, b) => b.count - a.count || b.rank - a.rank);
+      if (entries[0].count === 4) { category = 7; label = 'Four of a Kind'; mainRank = entries[0].rank; }
+      else if (entries[0].count === 3 && entries[1]?.count >= 2) { category = 6; label = 'Full House'; mainRank = entries[0].rank; secondaryRank = entries[1].rank; }
+      else if (flushSuit) { category = 5; label = 'Flush'; mainRank = ranks[0]; }
+      else if (isStraight) { category = 4; label = 'Straight'; mainRank = straightHigh; }
+      else if (entries[0].count === 3) { category = 3; label = 'Three of a Kind'; mainRank = entries[0].rank; }
+      else if (entries[0].count === 2 && entries[1]?.count === 2) { category = 2; label = 'Two Pair'; mainRank = entries[0].rank; secondaryRank = entries[1].rank; }
+      else if (entries[0].count === 2) { category = 1; label = 'One Pair'; mainRank = entries[0].rank; }
+      else { category = 0; label = 'High Card'; mainRank = ranks[0]; }
+    }
+
+    const kickerScore = ranks.slice(0, 5).reduce((acc, r, i) => acc + r * Math.pow(15, 4 - i), 0);
+    const finalScore = category * 1000000 + mainRank * 10000 + secondaryRank * 100 + kickerScore / 100;
+
+    return { score: finalScore, label };
   };
 
   return (
@@ -175,15 +285,15 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
           <div key={npc.name} className="flex flex-col items-center space-y-6">
              <div className={`w-32 h-32 bg-rust-950 border-8 flex items-center justify-center text-6xl relative shadow-2xl transition-all ${npc.isFolded ? 'opacity-30 grayscale border-rust-900' : 'border-sand-400'}`}>
                 {npc.avatar}
-                <div className="absolute -bottom-3 bg-terracotta-400 text-rust-950 px-4 py-1 text-xs font-bold uppercase tracking-widest border-2 border-rust-900">{npc.name}</div>
+                <div className="absolute -bottom-3 bg-terracotta-400 text-rust-950 px-4 py-1 text-base font-bold uppercase tracking-widest border-2 border-rust-900">{npc.name}</div>
              </div>
              
-             {/* NPC Cards Revealed at showdown */}
-             {(phase === 'showdown' || phase === 'result') && (
+             {/* NPC Cards Revealed at result */}
+             {(phase === 'result') && (
                <div className="flex gap-2 animate-in zoom-in duration-500">
                   {npc.hand.map((c, i) => (
-                    <div key={i} className="w-10 h-14 bg-white border-2 border-rust-900 rounded flex items-center justify-center text-xs font-bold text-rust-900">
-                      {c.rank}{c.suit}
+                    <div key={i} className={`w-10 h-14 bg-white border-2 border-rust-900 rounded flex items-center justify-center text-lg font-bold ${npc.isFolded ? 'opacity-50' : 'text-rust-900'}`}>
+                      {c.rank}<span className={getSuitColor(c.suit)}>{c.suit}</span>
                     </div>
                   ))}
                </div>
@@ -206,7 +316,11 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         <div className="flex gap-8">
           {[...Array(5)].map((_, i) => (
             <div key={i} className={`w-28 h-40 rounded-xl border-4 flex items-center justify-center text-3xl font-bold transition-all duration-700 shadow-2xl ${communityCards[i] ? 'bg-white text-rust-900 border-sand-200 scale-105' : 'bg-rust-900/30 border-rust-900 border-dashed scale-95 opacity-20'}`}>
-               {communityCards[i] ? `${communityCards[i].rank}${communityCards[i].suit}` : ''}
+               {communityCards[i] ? (
+                 <>
+                   {communityCards[i].rank}<span className={getSuitColor(communityCards[i].suit)}>{communityCards[i].suit}</span>
+                 </>
+               ) : ''}
             </div>
           ))}
         </div>
@@ -220,11 +334,11 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       <div className="flex flex-col lg:flex-row items-center justify-between gap-16 pt-16">
         
         <div className="panel-pixel p-10 bg-rust-950/90 border-sand-400 shadow-none text-center space-y-6 shrink-0 min-w-[300px]">
-           <p className="text-sm uppercase text-sand-500 font-bold tracking-[0.3em]">Your Hole Cards</p>
+           <p className="text-xl uppercase text-sand-500 font-bold tracking-[0.3em]">Your Hole Cards</p>
            <div className="flex gap-6 justify-center">
               {playerHand.map((card, i) => (
                 <div key={i} className="w-24 h-36 bg-white border-4 border-rust-900 rounded-xl flex items-center justify-center text-3xl font-bold text-rust-900 animate-in zoom-in duration-700 shadow-2xl hover:scale-110 transition-transform">
-                  {card.rank}{card.suit}
+                  {card.rank}<span className={getSuitColor(card.suit)}>{card.suit}</span>
                 </div>
               ))}
               {playerHand.length === 0 && <div className="w-56 h-36 border-4 border-rust-900 border-dashed rounded-xl opacity-10"></div>}
@@ -240,13 +354,13 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
                 </div>
                 <div className="flex gap-4 w-full">
                    {[10, 25, 50, 100].map(val => (
-                     <button key={val} onClick={() => setBet(val)} className={`btn-pixel text-sm flex-1 py-5 px-0 ${bet === val ? 'bg-sand-400 text-rust-950' : 'bg-rust-800'}`}>{val}</button>
+                     <button key={val} onClick={() => setBet(val)} className={`btn-pixel flex-1 py-5 px-0 ${bet === val ? 'bg-sand-400 text-rust-950' : 'bg-rust-800'}`}>{val}</button>
                    ))}
                 </div>
                 <button onClick={startRound} className="btn-pixel w-full py-8 text-3xl tracking-[0.4em] font-heading">TAKE A SEAT</button>
              </div>
            ) : phase === 'result' ? (
-             <button onClick={() => { setPhase('betting'); setHand([]); setCommunity([]); setMessage('Want to go again?'); setNpcChat(''); }} className="btn-pixel w-full py-10 text-3xl tracking-[0.3em] font-heading">PLAY ANOTHER ROUND</button>
+             <button onClick={() => { setPhase('betting'); setHand([]); setCommunity([]); setMessage('Want to go again?'); setNpcChat(''); setInvested(0); }} className="btn-pixel w-full py-10 text-3xl tracking-[0.3em] font-heading">PLAY ANOTHER ROUND</button>
            ) : (
              <div className="grid grid-cols-2 gap-6 w-full">
                 <button onClick={() => handleAction('fold')} className="btn-pixel bg-rust-800 border-rust-950 text-sand-600 text-sm py-6">FOLD</button>

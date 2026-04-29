@@ -30,7 +30,7 @@ export default function Navbar({ gold }: { gold: number }) {
                 key={tab.name}
                 href={tab.href}
                 className={`
-                  btn-pixel text-xs py-3 px-4 flex items-center gap-2
+                  btn-pixel py-3 px-4 flex items-center gap-2
                   ${pathname === tab.href ? 'bg-sand-400 text-rust-900 border-sand-600' : 'bg-rust-700 border-rust-900 text-sand-500'}
                 `}
               >

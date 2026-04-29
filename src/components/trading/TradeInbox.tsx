@@ -69,22 +69,22 @@ export default function TradeInbox({
         return (
           <div key={trade.id} className="panel-pixel space-y-4">
             <div className="flex justify-between items-center border-b-2 border-rust-900 pb-2">
-              <span className="text-sm">From: {trade.initiator.username || 'Anonymous'}</span>
-              <span className="text-xs text-terracotta-400">{new Date(trade.created_at).toLocaleDateString()}</span>
+              <span className="text-xl">From: {trade.initiator.username || 'Anonymous'}</span>
+              <span className="text-lg text-terracotta-400">{new Date(trade.created_at).toLocaleDateString()}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs uppercase mb-1 text-sand-500 font-heading">They Offer:</p>
-                <ul className="text-sm list-disc list-inside">
+                <p className="text-lg uppercase mb-1 text-sand-500 font-heading">They Offer:</p>
+                <ul className="text-xl list-disc list-inside">
                   {offering.map(item => (
                     <li key={item.id} className="truncate">{item.user_inventory?.cards.name}</li>
                   ))}
                 </ul>
               </div>
               <div>
-                <p className="text-xs uppercase mb-1 text-sand-500 font-heading">They Want:</p>
-                <ul className="text-sm list-disc list-inside">
+                <p className="text-lg uppercase mb-1 text-sand-500 font-heading">They Want:</p>
+                <ul className="text-xl list-disc list-inside">
                   {requesting.map(item => (
                     <li key={item.id} className="truncate">{item.user_inventory?.cards.name}</li>
                   ))}
@@ -96,14 +96,14 @@ export default function TradeInbox({
               <button 
                 onClick={() => handleAccept(trade.id)}
                 disabled={!!loading}
-                className="btn-pixel bg-green-600 border-green-800 text-white flex-1 text-xs py-2"
+                className="btn-pixel bg-green-600 border-green-800 text-white flex-1"
               >
                 {loading === trade.id ? '...' : 'Accept'}
               </button>
               <button 
                 onClick={() => handleReject(trade.id)}
                 disabled={!!loading}
-                className="btn-pixel bg-red-600 border-red-800 text-white flex-1 text-xs py-2"
+                className="btn-pixel bg-red-600 border-red-800 text-white flex-1"
               >
                 {loading === trade.id ? '...' : 'Reject'}
               </button>

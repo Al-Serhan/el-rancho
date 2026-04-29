@@ -102,7 +102,7 @@ export default function TradeProposer({
       {selectedReceiver && (
         <div className="grid md:grid-cols-2 gap-6">
           <div className="panel-pixel">
-            <h3 className="mb-4 text-sm">Your Offering</h3>
+            <h3 className="mb-4 text-xl">Your Offering</h3>
             <div className="grid grid-cols-1 gap-2">
               {myInventory.map(item => (
                 <div 
@@ -110,15 +110,15 @@ export default function TradeProposer({
                   onClick={() => toggleOffering(item.id)}
                   className={`p-2 border-2 cursor-pointer transition-colors ${offering.includes(item.id) ? 'border-terracotta-400 bg-rust-700' : 'border-sand-400'}`}
                 >
-                  <p className="text-xs truncate">{item.cards.name}</p>
+                  <p className="text-lg truncate">{item.cards.name}</p>
                 </div>
               ))}
-              {myInventory.length === 0 && <p className="text-xs text-sand-500">Inventory empty.</p>}
+              {myInventory.length === 0 && <p className="text-lg text-sand-500">Inventory empty.</p>}
             </div>
           </div>
 
           <div className="panel-pixel">
-            <h3 className="mb-4 text-sm">Their Goods</h3>
+            <h3 className="mb-4 text-xl">Their Goods</h3>
             <div className="grid grid-cols-1 gap-2">
               {receiverInventory.map(item => (
                 <div 
@@ -126,10 +126,10 @@ export default function TradeProposer({
                   onClick={() => toggleRequesting(item.id)}
                   className={`p-2 border-2 cursor-pointer transition-colors ${requesting.includes(item.id) ? 'border-terracotta-400 bg-rust-700' : 'border-sand-400'}`}
                 >
-                  <p className="text-xs truncate">{item.cards.name}</p>
+                  <p className="text-lg truncate">{item.cards.name}</p>
                 </div>
               ))}
-              {receiverInventory.length === 0 && <p className="text-xs text-sand-500">Inventory empty.</p>}
+              {receiverInventory.length === 0 && <p className="text-lg text-sand-500">Inventory empty.</p>}
             </div>
           </div>
         </div>
