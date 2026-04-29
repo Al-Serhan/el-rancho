@@ -17,11 +17,15 @@ interface InteractiveCardProps {
 
 export default function InteractiveCard({ card, rarityClass, rarityTextClass }: InteractiveCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const { playSound } = useSound();
 
   return (
     <div 
       className="group perspective-1000 w-full h-[450px] cursor-pointer"
-      onClick={() => setIsFlipped(!isFlipped)}
+      onClick={() => {
+        setIsFlipped(!isFlipped);
+        playSound('flip');
+      }}
     >
       <div className={`
         relative w-full h-full transition-transform duration-700 preserve-3d

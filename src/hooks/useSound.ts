@@ -34,13 +34,20 @@ export const useSound = () => {
         osc.start(now);
         osc.stop(now + 0.03);
       } else if (type === 'flip') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(300, now);
-        osc.frequency.linearRampToValueAtTime(600, now + 0.1);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+        // Satisfying thick paper snap/swoosh
+        osc.type = 'triangle';
+        
+        // Fast pitch drop for a "thwack" sound
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+        
+        // Sharp attack, quick release
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.3, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        
         osc.start(now);
-        osc.stop(now + 0.1);
+        osc.stop(now + 0.15);
       } else if (type === 'chip') {
         osc.type = 'square';
         osc.frequency.setValueAtTime(800, now);

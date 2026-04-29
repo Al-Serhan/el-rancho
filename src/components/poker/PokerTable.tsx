@@ -307,9 +307,11 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       <div className="grid grid-cols-3 gap-12">
         {npcs.map(npc => (
           <div key={npc.name} className="flex flex-col items-center space-y-6">
-             <div className={`w-32 h-32 bg-rust-950 border-8 flex items-center justify-center relative shadow-2xl transition-all overflow-hidden ${npc.isFolded ? 'opacity-30 grayscale border-rust-900' : 'border-sand-400'}`}>
-                <Image src={npc.avatar} alt={npc.name} fill className="pixelated object-cover" unoptimized />
-                <div className="absolute -bottom-3 bg-terracotta-400 text-rust-950 px-4 py-1 text-base font-bold uppercase tracking-widest border-2 border-rust-900">{npc.name}</div>
+             <div className="flex flex-col items-center gap-3">
+               <div className={`w-32 h-32 bg-rust-950 border-8 flex items-center justify-center relative shadow-2xl transition-all overflow-hidden ${npc.isFolded ? 'opacity-30 grayscale border-rust-900' : 'border-sand-400'}`}>
+                  <Image src={npc.avatar} alt={npc.name} fill className="pixelated object-cover" unoptimized />
+               </div>
+               <div className="bg-rust-900 text-sand-400 px-4 py-2 text-base font-bold uppercase tracking-widest border-2 border-rust-950 shadow-md">{npc.name}</div>
              </div>
              
              {/* NPC Cards Revealed at result */}

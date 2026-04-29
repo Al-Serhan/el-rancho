@@ -75,9 +75,9 @@ export default async function Dashboard() {
       <div className="lg:col-span-8 space-y-12">
         <div className="grid md:grid-cols-2 gap-8">
           <Link href="/dashboard/trades" className="group">
-            <div className="panel-pixel h-full hover:border-terracotta-400 hover:translate-x-1 hover:-translate-y-1 transition-all bg-rust-800 border-sand-400/40 py-16 flex flex-col items-center justify-center space-y-6">
+            <div className="panel-pixel h-full hover:border-cyan-400 hover:translate-x-1 hover:-translate-y-1 transition-all bg-rust-800 border-sand-400/40 py-16 flex flex-col items-center justify-center space-y-6">
               <div className="text-6xl group-hover:scale-110 transition-transform">🤝</div>
-              <h2 className="text-3xl font-heading tracking-widest text-sand-300 group-hover:text-terracotta-400 transition-colors">TRADING POST</h2>
+              <h2 className="text-3xl font-heading tracking-widest text-sand-300 group-hover:text-cyan-400 transition-colors">TRADING POST</h2>
               <p className="text-lg text-sand-600 text-center px-8 uppercase font-bold tracking-tight">Swap your legendary artifacts.</p>
             </div>
           </Link>
@@ -99,9 +99,9 @@ export default async function Dashboard() {
           </Link>
 
           <Link href="/dashboard/leaderboard" className="group">
-            <div className="panel-pixel h-full hover:border-yellow-400 hover:translate-x-1 hover:-translate-y-1 transition-all bg-rust-800 border-sand-400/40 py-16 flex flex-col items-center justify-center space-y-6">
+            <div className="panel-pixel h-full hover:border-amber-500 hover:translate-x-1 hover:-translate-y-1 transition-all bg-rust-800 border-sand-400/40 py-16 flex flex-col items-center justify-center space-y-6">
               <div className="text-6xl group-hover:scale-110 transition-transform">🥇</div>
-              <h2 className="text-3xl font-heading tracking-widest text-sand-300 group-hover:text-yellow-400 transition-colors uppercase">Hall of Fame</h2>
+              <h2 className="text-3xl font-heading tracking-widest text-sand-300 group-hover:text-amber-500 transition-colors uppercase">Hall of Fame</h2>
               <p className="text-lg text-sand-600 text-center px-8 uppercase font-bold tracking-tight">The town&apos;s wealthiest drifters.</p>
             </div>
           </Link>
