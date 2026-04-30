@@ -20,6 +20,12 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
   const [isFlipped, setIsFlipped] = useState(false);
   const { playSound } = useSound();
 
+  let imageUrl = card.image_url;
+  if (imageUrl === '/cards/calamity-jane-rifle.svg') imageUrl = '/cards/calamity_jane_rifle.png';
+  if (imageUrl === '/cards/saloon-clanker.svg' || imageUrl === '/cards/the-saloon-clanker.svg') imageUrl = '/cards/the_saloon_clanker.png';
+  if (imageUrl === '/cards/golden-key.svg') imageUrl = '/cards/golden_key.png';
+
+
   return (
     <div 
       className="group perspective-1000 w-full h-[450px] cursor-pointer"
@@ -36,13 +42,13 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
         
         {/* Front of Card */}
         <div 
-          className={`absolute inset-0 backface-hidden panel-pixel !p-4 overflow-hidden flex flex-col h-full bg-rust-900 ${rarityClass}`}
+          className={`absolute inset-0 backface-hidden panel-pixel !p-4 flex flex-col h-full bg-rust-900 ${rarityClass}`}
           style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
         >
-          <div className="aspect-square bg-rust-900 mb-6 flex items-center justify-center border-4 border-rust-700 relative overflow-hidden shrink-0">
-            {card.image_url ? (
+          <div className="aspect-square bg-rust-900 mb-2 flex items-center justify-center border-4 border-rust-700 relative shrink-0">
+            {imageUrl ? (
               <Image 
-                src={card.image_url} 
+                src={imageUrl} 
                 alt={card.name} 
                 fill
                 className="pixelated p-4 object-contain"
@@ -55,12 +61,12 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
               {card.rarity}
             </div>
           </div>
-          <div className="flex-1 flex flex-col justify-center items-center space-y-4 px-2">
-            <h3 className="text-3xl text-center font-heading text-sand-200 uppercase tracking-widest">{card.name}</h3>
-            <p className={`text-xl text-center uppercase tracking-[0.2em] font-bold ${rarityTextClass}`}>
+          <div className="flex-1 flex flex-col justify-center items-center space-y-2 px-2 overflow-hidden">
+            <h3 className="text-2xl text-center font-heading text-sand-200 uppercase tracking-widest leading-tight">{card.name}</h3>
+            <p className={`text-lg text-center uppercase tracking-[0.2em] font-bold ${rarityTextClass}`}>
               {card.special_attribute}
             </p>
-            <div className="pt-4 opacity-40 text-base uppercase font-bold tracking-widest animate-pulse">
+            <div className="pt-2 opacity-40 text-sm uppercase font-bold tracking-widest animate-pulse">
               Click to Flip
             </div>
           </div>
@@ -68,7 +74,7 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
 
         {/* Back of Card */}
         <div 
-          className={`absolute inset-0 backface-hidden rotate-y-180 panel-pixel !p-4 overflow-hidden flex flex-col items-center justify-center h-full bg-rust-800 ${rarityClass}`}
+          className={`absolute inset-0 backface-hidden rotate-y-180 panel-pixel !p-4 flex flex-col items-center justify-center h-full bg-rust-800 ${rarityClass}`}
           style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
         >
           <div className="absolute inset-4 border-2 border-dashed border-sand-500/20 pointer-events-none"></div>
