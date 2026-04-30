@@ -39,8 +39,8 @@ export default async function Dashboard() {
   const honorPercent = Math.min(100, Math.max(2, honor)); // At least 2% to show the bar
 
   return (
-    <main className="max-w-7xl mx-auto p-6 md:p-12 grid lg:grid-cols-12 gap-12 animate-in fade-in zoom-in-95 duration-700">
-      
+    <main className="max-w-7xl mx-auto p-6 md:p-12 grid lg:grid-cols-12 gap-12 animate-in fade-in zoom-in-95 duration-700 relative">
+      <div className="fixed inset-0 z-[-1] bg-town-sunset"></div>
       {/* Sidebar: Profile Info */}
       <div className="lg:col-span-4 space-y-8">
         <div className="panel-pixel bg-gradient-to-b from-rust-800 to-rust-900 border-sand-500 flex flex-col items-center">

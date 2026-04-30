@@ -19,7 +19,8 @@ export default async function PokerPage() {
     .single();
 
   return (
-    <main className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
+    <main className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500 relative">
+      <div className="fixed inset-0 z-[-1] bg-saloon-wood"></div>
       <div className="flex flex-col md:flex-row justify-between items-center border-b-8 border-rust-900 pb-4 gap-4">
         <div>
           <p className="text-terracotta-400 text-xl uppercase mb-1">The Saloon</p>

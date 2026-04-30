@@ -66,7 +66,8 @@ export default async function CollectionPage() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto p-4 md:p-8 space-y-12 animate-in slide-in-from-bottom duration-500 mb-20">
+    <main className="max-w-7xl mx-auto p-4 md:p-8 space-y-12 animate-in slide-in-from-bottom duration-500 mb-20 relative">
+      <div className="fixed inset-0 z-[-1] bg-vault-metal"></div>
       <div className="flex flex-col md:flex-row justify-between items-center md:items-end border-b-8 border-rust-900 pb-6 gap-6">
         <div className="text-center md:text-left space-y-2">
           <p className="text-terracotta-400 text-xl uppercase tracking-[0.3em] font-bold">The Great Vault</p>
