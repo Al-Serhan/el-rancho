@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 export default function EmailLogin() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -16,14 +17,10 @@ export default function EmailLogin() {
     setLoading(true);
     const dummyEmail = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@elrancho.local`;
 
-    let { error } = await supabase.auth.signInWithPassword({
-      email: dummyEmail,
-      password,
-    });
+    let authError = null;
 
-    if (error && error.message.includes('Invalid login credentials')) {
-      // Try signing up
-      const { error: signUpError } = await supabase.auth.signUp({
+    if (isSignUp) {
+      const { error } = await supabase.auth.signUp({
         email: dummyEmail,
         password,
         options: {
@@ -32,11 +29,17 @@ export default function EmailLogin() {
           }
         }
       });
-      error = signUpError;
+      authError = error;
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: dummyEmail,
+        password,
+      });
+      authError = error;
     }
 
-    if (error) {
-      alert(error.message);
+    if (authError) {
+      alert(authError.message);
     } else {
       router.push('/dashboard');
       router.refresh();
@@ -67,9 +70,17 @@ export default function EmailLogin() {
           disabled={loading}
           className="btn-pixel w-full bg-sand-400 border-sand-600"
         >
-          {loading ? 'Entering...' : 'Enter the Rancho'}
+          {loading ? 'Entering...' : isSignUp ? 'Create Account' : 'Enter the Rancho'}
         </button>
       </form>
+      <div className="text-center pt-2">
+        <button 
+          onClick={() => setIsSignUp(!isSignUp)} 
+          className="text-sand-500 hover:text-terracotta-400 underline text-sm uppercase tracking-widest font-bold"
+        >
+          {isSignUp ? 'Already a drifter? Login' : 'Need an account? Sign Up'}
+        </button>
+      </div>
     </div>
   );
 }

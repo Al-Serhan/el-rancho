@@ -22,6 +22,21 @@ export default async function Dashboard() {
   const role = profile?.role || 'Farmer';
   const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || '/default-avatar.png';
   const username = profile?.username || user.user_metadata?.full_name || 'Anonymous Cowboy';
+  const honor = profile?.honor || 0;
+
+  let statusName = 'Greenhorn';
+  let honorColor = 'bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)]';
+  if (honor >= 100) {
+    statusName = 'Legendary';
+    honorColor = 'bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)]';
+  } else if (honor >= 50) {
+    statusName = 'Honorable';
+    honorColor = 'bg-green-600 shadow-[0_0_15px_rgba(22,163,74,0.5)]';
+  } else if (honor >= 20) {
+    statusName = 'Known';
+    honorColor = 'bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.5)]';
+  }
+  const honorPercent = Math.min(100, Math.max(2, honor)); // At least 2% to show the bar
 
   return (
     <main className="max-w-7xl mx-auto p-6 md:p-12 grid lg:grid-cols-12 gap-12 animate-in fade-in zoom-in-95 duration-700">
@@ -49,10 +64,10 @@ export default async function Dashboard() {
           <div className="w-full pt-8 border-t-2 border-rust-900/50 flex flex-col gap-4 px-6">
              <div className="flex justify-between items-center text-lg uppercase text-sand-500 font-bold">
                <span>Town Status</span>
-               <span>Honorable</span>
+               <span>{statusName} ({honor} / 100)</span>
              </div>
              <div className="h-4 w-full bg-rust-950 border-2 border-rust-800 p-0.5">
-               <div className="h-full w-2/3 bg-green-600 shadow-[0_0_15px_rgba(22,163,74,0.5)]"></div>
+               <div className={`h-full transition-all duration-1000 ${honorColor}`} style={{ width: `${honorPercent}%` }}></div>
              </div>
           </div>
 

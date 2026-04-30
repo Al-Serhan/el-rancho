@@ -34,8 +34,8 @@ const FRONTIER_LEGENDS = [
   { name: 'Kerosene Lamp', rarity: 'Uncommon', special_attribute: 'Visibility +10', description: 'Pierces through the darkest desert nights.', image_url: '/cards/kerosene-lamp.svg' },
   { name: 'Stagecoach Wheel', rarity: 'Common', special_attribute: 'Repair +5', description: 'A sturdy spare for the long road to San Francisco.', image_url: '/cards/stagecoach-wheel.svg' },
   { name: 'Cowboy Hat', rarity: 'Common', special_attribute: 'Style +2', description: 'A wide-brimmed classic. Keeps the sun out of your eyes.', image_url: '/cards/cowboy-hat.svg' },
-  { name: 'One-Eyed Pete', rarity: 'Rare', special_attribute: '+5 Intimidation', description: 'A seasoned player of the Saloon. Missing an eye, but never misses a bluff.', image_url: '/avatars/pete.png' },
-  { name: 'Rusty Red', rarity: 'Rare', special_attribute: '+3 Luck', description: 'He sweats bullets when the stakes get high. Mostly plays to feed his mule.', image_url: '/avatars/rusty.png' },
+  { name: 'One-Eyed Mossy', rarity: 'Rare', special_attribute: '+5 Intimidation', description: 'A seasoned player of the Saloon. Missing an eye, but never misses a bluff.', image_url: '/avatars/pete.png' },
+  { name: 'Feller Epilex', rarity: 'Rare', special_attribute: '+3 Luck', description: 'He sweats bullets when the stakes get high. Mostly plays to feed his mule.', image_url: '/avatars/rusty.png' },
   { name: 'AI Silas', rarity: 'Rare', special_attribute: '100% Logic', description: 'A mechanical marvel built to calculate the odds perfectly. Rarely folds.', image_url: '/avatars/silas.png' },
   { name: 'Common squid', rarity: 'Common', special_attribute: 'Server Veteran', description: 'Despite the name, this cosmic space fish is an original member of the Discord server. Floats through the cosmos with quiet authority.', image_url: '/cards/common_squid.png' }
 ];

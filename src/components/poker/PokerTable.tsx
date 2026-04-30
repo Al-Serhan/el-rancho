@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { resolvePokerGame } from '@/app/actions/poker';
+import { incrementHonor } from '@/app/actions/honor';
 
 type Suit = '♠' | '♥' | '♦' | '♣';
 type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A';
@@ -27,8 +28,8 @@ import Image from 'next/image';
 import { useSound } from '@/hooks/useSound';
 
 const INITIAL_NPCS: NPC[] = [
-  { name: 'One-Eyed Pete', avatar: '/avatars/pete.png', personality: 'aggressive', hand: [], isFolded: false, phrase: 'I seen better hands in a graveyard!' },
-  { name: 'Rusty Red', avatar: '/avatars/rusty.png', personality: 'cowardly', hand: [], isFolded: false, phrase: 'I got a bad feeling about this...' },
+  { name: 'One-Eyed Mossy', avatar: '/avatars/pete.png', personality: 'aggressive', hand: [], isFolded: false, phrase: 'I seen better hands in a graveyard!' },
+  { name: 'Feller Epilex', avatar: '/avatars/rusty.png', personality: 'cowardly', hand: [], isFolded: false, phrase: 'I got a bad feeling about this...' },
   { name: 'AI Silas', avatar: '/avatars/silas.png', personality: 'balanced', hand: [], isFolded: false, phrase: 'Probabilities are... interesting.' }
 ];
 
@@ -44,6 +45,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [invested, setInvested] = useState(0);
   const [message, setMessage] = useState('Step up to the table, partner.');
   const [npcChat, setNpcChat] = useState<string>('');
+  const [honorCue, setHonorCue] = useState<string | null>(null);
   const { playSound } = useSound();
 
   const createDeck = () => {
@@ -77,7 +79,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     setInvested(bet);
     setPhase('preflop');
     setMessage('The cards are dealt. Your move.');
-    setNpcChat('One-Eyed Pete: "I\'m in. Let\'s see what you got."');
+    setNpcChat('One-Eyed Mossy: "I\'m in. Let\'s see what you got."');
     playSound('deal');
   };
 
@@ -217,6 +219,9 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       } else if (isWinner) {
         setMessage(autoWin ? 'WINNER! Everyone folded.' : `WINNER! ${playerRank.label}. You took the pot!`);
         playSound('win');
+        incrementHonor(10);
+        setHonorCue('+10 HONOR');
+        setTimeout(() => setHonorCue(null), 3000);
       } else {
         setMessage(`LOSE. ${playerRank.label} wasn't enough.`);
         playSound('error');
@@ -354,6 +359,11 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         <div className="text-4xl font-heading text-terracotta-400 tracking-[0.2em] animate-pulse text-center px-12 leading-relaxed h-12 flex items-center">
           {message}
         </div>
+        {honorCue && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl font-heading text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,1)] z-50 animate-bounce">
+            {honorCue}
+          </div>
+        )}
       </div>
 
       {/* Player Area */}
