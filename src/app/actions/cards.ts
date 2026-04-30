@@ -22,9 +22,9 @@ const FRONTIER_LEGENDS = [
   { name: 'Ace of Spades', rarity: 'Epic', special_attribute: 'Instant Win', description: 'The death card. Use it wisely.', image_url: '/cards/ace-of-spades.svg' },
   { name: 'Buffalo Skull', rarity: 'Epic', special_attribute: 'Intimidation +8', description: 'A bleached reminder of the old ways.', image_url: '/cards/buffalo-skull.svg' },
   { name: 'Dynamite', rarity: 'Epic', special_attribute: 'Blast Damage 50', description: 'Handle with care. Or don’t. We aren’t your parents.', image_url: '/cards/dynamite.svg' },
-  { name: 'Calamity Jane Rifle', rarity: 'Legendary', special_attribute: 'Attack +20', description: 'Legend says she never missed a shot. Now it’s yours.', image_url: '/cards/calamity-jane-rifle.svg' },
-  { name: 'The Saloon Clanker', rarity: 'Legendary', special_attribute: 'Automation +50', description: 'An AI bot from Sheriff Jones’ Server. It calculates probabilities faster than you can draw.', image_url: '/cards/saloon-clanker.svg' },
-  { name: 'Golden Key', rarity: 'Legendary', special_attribute: 'Unlocks All', description: 'Rumored to open the forbidden vault beneath the old bank.', image_url: '/cards/golden-key.svg' },
+  { name: 'Calamity Jane Rifle', rarity: 'Legendary', special_attribute: 'Attack +20', description: 'Legend says she never missed a shot. Now it’s yours.', image_url: '/cards/calamity_jane_rifle.png' },
+  { name: 'The Saloon Clanker', rarity: 'Legendary', special_attribute: 'Automation +50', description: 'An AI bot from Sheriff Jones’ Server. It calculates probabilities faster than you can draw.', image_url: '/cards/the_saloon_clanker.png' },
+  { name: 'Golden Key', rarity: 'Legendary', special_attribute: 'Unlocks All', description: 'Rumored to open the forbidden vault beneath the old bank.', image_url: '/cards/golden_key.png' },
   { name: 'Tomahawk', rarity: 'Epic', special_attribute: 'Precision +15', description: 'Balanced for throwing, carved with ancient protective runes.', image_url: '/cards/tomahawk.svg' },
   { name: 'Peace Pipe', rarity: 'Epic', special_attribute: 'Diplomacy +20', description: 'Settles disputes without a single drop of blood being spilled.', image_url: '/cards/peace-pipe.svg' },
   { name: 'Bear Claw', rarity: 'Epic', special_attribute: 'Strength +12', description: 'Trophy from a beast that once ruled the high Sierras.', image_url: '/cards/bear-claw.svg' },
@@ -34,6 +34,10 @@ const FRONTIER_LEGENDS = [
   { name: 'Kerosene Lamp', rarity: 'Uncommon', special_attribute: 'Visibility +10', description: 'Pierces through the darkest desert nights.', image_url: '/cards/kerosene-lamp.svg' },
   { name: 'Stagecoach Wheel', rarity: 'Common', special_attribute: 'Repair +5', description: 'A sturdy spare for the long road to San Francisco.', image_url: '/cards/stagecoach-wheel.svg' },
   { name: 'Cowboy Hat', rarity: 'Common', special_attribute: 'Style +2', description: 'A wide-brimmed classic. Keeps the sun out of your eyes.', image_url: '/cards/cowboy-hat.svg' },
+  { name: 'One-Eyed Pete', rarity: 'Rare', special_attribute: '+5 Intimidation', description: 'A seasoned player of the Saloon. Missing an eye, but never misses a bluff.', image_url: '/avatars/pete.png' },
+  { name: 'Rusty Red', rarity: 'Rare', special_attribute: '+3 Luck', description: 'He sweats bullets when the stakes get high. Mostly plays to feed his mule.', image_url: '/avatars/rusty.png' },
+  { name: 'AI Silas', rarity: 'Rare', special_attribute: '100% Logic', description: 'A mechanical marvel built to calculate the odds perfectly. Rarely folds.', image_url: '/avatars/silas.png' },
+  { name: 'Common squid', rarity: 'Common', special_attribute: 'Server Veteran', description: 'Despite the name, this cosmic space fish is an original member of the Discord server. Floats through the cosmos with quiet authority.', image_url: '/cards/common_squid.png' }
 ];
 
 export async function claimStarterPack() {
@@ -44,12 +48,12 @@ export async function claimStarterPack() {
   const adminSupabase = createAdminClient();
 
   // 1. Ensure all cards exist
+  await adminSupabase.from('cards').upsert(FRONTIER_LEGENDS, { onConflict: 'name' });
   const { data: cards, error: cardsError } = await adminSupabase
     .from('cards')
-    .upsert(FRONTIER_LEGENDS, { onConflict: 'name' })
     .select();
 
-  if (cardsError) throw new Error('Initialization failed');
+  if (cardsError || !cards) throw new Error('Initialization failed');
 
   // 2. Check for existing cards
   const { count } = await adminSupabase
@@ -100,12 +104,13 @@ export async function sheriffGrantAllCards() {
   const adminSupabase = createAdminClient();
 
   // 1. Force Sync the entire library first
-  const { data: allCards, error: syncError } = await adminSupabase
+  await adminSupabase.from('cards').upsert(FRONTIER_LEGENDS, { onConflict: 'name' });
+
+  const { data: allCards, error: selectError } = await adminSupabase
     .from('cards')
-    .upsert(FRONTIER_LEGENDS, { onConflict: 'name' })
     .select('id');
 
-  if (syncError || !allCards) throw new Error('Failed to sync library');
+  if (selectError || !allCards) throw new Error('Failed to fetch library');
 
   const inventoryItems = allCards.map(card => ({
     user_id: user.id,
