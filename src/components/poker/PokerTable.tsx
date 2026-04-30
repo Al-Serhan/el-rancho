@@ -237,9 +237,9 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     const foldCount = actions.filter(a => a.includes('folds')).length;
     const raiseCount = actions.filter(a => a.includes('raises')).length;
     let phaseMsg = '';
-    if (phase === 'flop' || nextCommunity.length === 3) phaseMsg = 'The flop is dealt.';
-    else if (phase === 'turn' || nextCommunity.length === 4) phaseMsg = 'The turn is out.';
-    else if (phase === 'river' || nextCommunity.length === 5) phaseMsg = 'The river has run dry.';
+    if (nextCommunity.length === 3) phaseMsg = 'The flop is dealt.';
+    else if (nextCommunity.length === 4) phaseMsg = 'The turn is out.';
+    else if (nextCommunity.length === 5) phaseMsg = 'The river has run dry.';
     
     if (raiseCount > 0) phaseMsg += ` ${raiseCount} bot${raiseCount > 1 ? 's' : ''} raised!`;
     if (foldCount > 0) phaseMsg += ` ${foldCount} folded.`;
@@ -257,7 +257,6 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     
     if (!actionToShow) return;
     
-    const npcName = actionToShow.split(' ')[0] + ' ' + actionToShow.split(' ')[1];
     const npc = currentNpcs.find(n => actionToShow.startsWith(n.name));
     
     if (!npc) {
