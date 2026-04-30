@@ -83,6 +83,76 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     playSound('deal');
   };
 
+  // --- NPC AI: Decides what each bot does on their turn ---
+  const processNpcTurns = (currentNpcs: NPC[], currentCommunity: Card[], currentBet: number): {
+    updatedNpcs: NPC[];
+    potChange: number;
+    actions: string[];
+  } => {
+    let potChange = 0;
+    const actions: string[] = [];
+
+    const updatedNpcs = currentNpcs.map(npc => {
+      if (npc.isFolded) return npc;
+
+      const npcAll = [...npc.hand, ...currentCommunity];
+      const rank = evaluateHand(npcAll);
+      const score = rank.score;
+
+      // --- FOLD LOGIC ---
+      let foldChance = 0;
+      if (npc.personality === 'cowardly') {
+        if (score < 1000000) foldChance = 0.55;       // No pair → 55% fold
+        else if (score < 1050000) foldChance = 0.25;   // Low pair → 25% fold
+      } else if (npc.personality === 'balanced') {
+        if (score < 500000) foldChance = 0.35;         // Trash hand → 35% fold
+        else if (score < 1000000) foldChance = 0.15;   // High card → 15% fold
+      } else { // aggressive
+        if (score < 100000) foldChance = 0.08;         // Absolute garbage → 8% fold
+      }
+
+      if (currentCommunity.length >= 3 && Math.random() < foldChance) {
+        actions.push(`${npc.name} folds!`);
+        return { ...npc, isFolded: true };
+      }
+
+      // --- RAISE LOGIC ---
+      let raiseChance = 0;
+      if (npc.personality === 'aggressive') {
+        if (score >= 2000000) raiseChance = 0.85;      // Two pair+ → 85%
+        else if (score >= 1000000) raiseChance = 0.50;  // Any pair → 50%
+        else raiseChance = 0.25;                        // Bluff raise! → 25%
+      } else if (npc.personality === 'balanced') {
+        if (score >= 3000000) raiseChance = 0.70;      // Three of a kind+ → 70%
+        else if (score >= 2000000) raiseChance = 0.40;  // Two pair → 40%
+        else if (score >= 1000000) raiseChance = 0.15;  // Pair → 15%
+      } else { // cowardly
+        if (score >= 4000000) raiseChance = 0.50;      // Straight+ → 50%
+        else if (score >= 2000000) raiseChance = 0.15;  // Two pair → 15%
+      }
+
+      if (Math.random() < raiseChance) {
+        const raiseAmt = currentBet;
+        potChange += raiseAmt;
+
+        // Determine if it's a bluff (raising with a weak hand)
+        const isBluff = score < 1000000;
+        if (isBluff) {
+          actions.push(`${npc.name} raises! 💀 (Bluff?)`);
+        } else {
+          actions.push(`${npc.name} raises! 💰`);
+        }
+        return npc;
+      }
+
+      // --- CHECK/CALL ---
+      actions.push(`${npc.name} calls.`);
+      return npc;
+    });
+
+    return { updatedNpcs, potChange, actions };
+  };
+
   const handleAction = async (action: 'fold' | 'check' | 'call' | 'raise') => {
     if (action === 'fold') {
       setMessage('You folded. The Saloon takes your ante.');
@@ -97,29 +167,12 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       setGold(prev => prev - raiseAmt);
       setInvested(prev => prev + raiseAmt);
       
-      let foldCount = 0;
-      const updatedNpcs = npcs.map(npc => {
-        if (npc.isFolded) return npc;
-        
-        const npcAll = [...npc.hand, ...communityCards];
-        const rank = evaluateHand(npcAll);
-        
-        // Thresholds based on new scoring (Category * 1,000,000)
-        let foldThreshold = 10000; // High Card
-        if (npc.personality === 'cowardly') foldThreshold = 1100000; // Pair of Jacks or better-ish
-        if (npc.personality === 'balanced') foldThreshold = 1000000; // Any pair
-        if (npc.personality === 'aggressive') foldThreshold = 0; // Never fold
-        
-        if (rank.score < foldThreshold) {
-          foldCount++;
-          return { ...npc, isFolded: true };
-        }
-        return npc;
-      });
+      // NPC response to player's raise — they evaluate whether to fold, call, or re-raise
+      const { updatedNpcs, potChange, actions } = processNpcTurns(npcs, communityCards, bet);
       
       setNpcs(updatedNpcs);
       const activeNpcs = updatedNpcs.filter(n => !n.isFolded);
-      setPot(prev => prev + raiseAmt + (raiseAmt * activeNpcs.length));
+      setPot(prev => prev + raiseAmt + potChange + (bet * activeNpcs.length));
       
       if (activeNpcs.length === 0) {
         setMessage('Everyone folded! The pot is yours.');
@@ -127,33 +180,157 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         return;
       }
 
-      setMessage(`You raised to ${raiseAmt}! ${foldCount > 0 ? `${foldCount} folded.` : 'Everyone calls.'}`);
-      triggerNpcReaction(updatedNpcs);
+      const foldCount = updatedNpcs.filter(n => n.isFolded).length - npcs.filter(n => n.isFolded).length;
+      const raiseCount = actions.filter(a => a.includes('raises')).length;
+      let msg = `You raised to ${raiseAmt}!`;
+      if (foldCount > 0) msg += ` ${foldCount} folded.`;
+      if (raiseCount > 0) msg += ` ${raiseCount} re-raised!`;
+      if (foldCount === 0 && raiseCount === 0) msg += ' Everyone calls.';
+      
+      setMessage(msg);
+      showNpcAction(actions, updatedNpcs);
       return;
     }
 
     // Progress game on Check/Call
     const newDeck = [...deck];
+    let nextCommunity = communityCards;
     if (phase === 'preflop') {
-      setCommunity(newDeck.splice(0, 3));
+      nextCommunity = newDeck.splice(0, 3);
+      setCommunity(nextCommunity);
       setPhase('flop');
-      setMessage('The flop is dealt. What\'s your move?');
     } else if (phase === 'flop') {
-      setCommunity(prev => [...prev, ...newDeck.splice(0, 1)]);
+      const newCards = newDeck.splice(0, 1);
+      nextCommunity = [...communityCards, ...newCards];
+      setCommunity(nextCommunity);
       setPhase('turn');
-      setMessage('The turn is out. Stakes are rising.');
     } else if (phase === 'turn') {
-      setCommunity(prev => [...prev, ...newDeck.splice(0, 1)]);
+      const newCards = newDeck.splice(0, 1);
+      nextCommunity = [...communityCards, ...newCards];
+      setCommunity(nextCommunity);
       setPhase('river');
-      setMessage('The river has run dry. One last chance.');
     } else if (phase === 'river') {
       setPhase('showdown');
       setMessage('Showdown! Let\'s see those cards.');
+      setDeck(newDeck);
+      return;
     } else if (phase === 'showdown') {
       await resolveShowdown();
+      setDeck(newDeck);
+      return;
     }
     setDeck(newDeck);
-    triggerNpcReaction();
+
+    // NPC turns after community cards are dealt
+    const { updatedNpcs, potChange, actions } = processNpcTurns(npcs, nextCommunity, bet);
+    setNpcs(updatedNpcs);
+    setPot(prev => prev + potChange);
+
+    const activeNpcs = updatedNpcs.filter(n => !n.isFolded);
+    if (activeNpcs.length === 0) {
+      setMessage('Everyone folded! The pot is yours.');
+      await resolveShowdown(true);
+      return;
+    }
+
+    // Build a contextual message
+    const foldCount = actions.filter(a => a.includes('folds')).length;
+    const raiseCount = actions.filter(a => a.includes('raises')).length;
+    let phaseMsg = '';
+    if (phase === 'flop' || nextCommunity.length === 3) phaseMsg = 'The flop is dealt.';
+    else if (phase === 'turn' || nextCommunity.length === 4) phaseMsg = 'The turn is out.';
+    else if (phase === 'river' || nextCommunity.length === 5) phaseMsg = 'The river has run dry.';
+    
+    if (raiseCount > 0) phaseMsg += ` ${raiseCount} bot${raiseCount > 1 ? 's' : ''} raised!`;
+    if (foldCount > 0) phaseMsg += ` ${foldCount} folded.`;
+    if (raiseCount === 0 && foldCount === 0) phaseMsg += ' What\'s your move?';
+    
+    setMessage(phaseMsg);
+    showNpcAction(actions, updatedNpcs);
+  };
+
+  const showNpcAction = (actions: string[], currentNpcs: NPC[]) => {
+    // Find the most interesting action to show as chat
+    const raiseAction = actions.find(a => a.includes('raises'));
+    const foldAction = actions.find(a => a.includes('folds'));
+    const actionToShow = raiseAction || foldAction || actions[0];
+    
+    if (!actionToShow) return;
+    
+    const npcName = actionToShow.split(' ')[0] + ' ' + actionToShow.split(' ')[1];
+    const npc = currentNpcs.find(n => actionToShow.startsWith(n.name));
+    
+    if (!npc) {
+      triggerNpcReaction(currentNpcs);
+      return;
+    }
+
+    // Context-sensitive quotes
+    if (actionToShow.includes('Bluff')) {
+      const bluffQuotes: Record<string, string[]> = {
+        'aggressive': [
+          'I\'m ALL in. You scared?',
+          'My hand is so good it\'d make a grown man cry.',
+          'You don\'t wanna see what I\'m holdin\'.',
+          'Raise. I don\'t even need to look at my cards.',
+        ],
+        'cowardly': [
+          'I... I raise! Please don\'t call...',
+          'Oh no. What did I just do.',
+          'I\'m probably going to regret this.',
+        ],
+        'balanced': [
+          'Statistically... this is inadvisable. Raising anyway.',
+          'Running bluff subroutine. Confidence at 12%.',
+          'Illogical play engaged. For science.',
+        ],
+      };
+      const quotes = bluffQuotes[npc.personality] || bluffQuotes['aggressive'];
+      setNpcChat(`${npc.name}: "${quotes[Math.floor(Math.random() * quotes.length)]}"`);
+    } else if (actionToShow.includes('raises')) {
+      const raiseQuotes: Record<string, string[]> = {
+        'aggressive': [
+          'Raise! Put up or shut up!',
+          'I\'m doubling down. You ain\'t got the nerve.',
+          'More gold in the pot. Let\'s make this interesting.',
+          'You think you can outplay ME? Raise!',
+        ],
+        'cowardly': [
+          'Okay... I\'m raising. My hands are shaking but I\'m raising.',
+          'This might be the best hand I\'ve ever had. RAISE!',
+          'The stars must be aligned... I raise.',
+        ],
+        'balanced': [
+          'Optimal play detected: raise.',
+          'Expected value positive. Raising.',
+          'My calculations favor aggressive action here.',
+        ],
+      };
+      const quotes = raiseQuotes[npc.personality] || raiseQuotes['aggressive'];
+      setNpcChat(`${npc.name}: "${quotes[Math.floor(Math.random() * quotes.length)]}"`);
+    } else if (actionToShow.includes('folds')) {
+      const foldQuotes: Record<string, string[]> = {
+        'aggressive': [
+          'Fine! I fold. But I\'ll be back.',
+          'This hand ain\'t worth my spit. Fold.',
+        ],
+        'cowardly': [
+          'Nope. Nope nope nope. I\'m out.',
+          'I fold! I can\'t take the pressure!',
+          'My mule needs me alive. I fold.',
+          'I knew I shoulda stayed in bed today.',
+        ],
+        'balanced': [
+          'Probability of winning: 3.2%. Folding.',
+          'Insufficient hand strength. Retreating.',
+          'Logic dictates I preserve my resources. Fold.',
+        ],
+      };
+      const quotes = foldQuotes[npc.personality] || foldQuotes['cowardly'];
+      setNpcChat(`${npc.name}: "${quotes[Math.floor(Math.random() * quotes.length)]}"`);
+    } else {
+      triggerNpcReaction(currentNpcs);
+    }
   };
 
   const triggerNpcReaction = (currentNpcs = npcs) => {
