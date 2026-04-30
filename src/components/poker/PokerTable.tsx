@@ -483,14 +483,14 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   };
 
   return (
-    <div className="space-y-16 max-w-7xl mx-auto py-12 font-pixel">
+    <div className="space-y-8 max-w-7xl mx-auto py-6 font-pixel">
       
       {/* NPCs Area */}
-      <div className="grid grid-cols-3 gap-12">
+      <div className="grid grid-cols-3 gap-4">
         {npcs.map(npc => (
-          <div key={npc.name} className="flex flex-col items-center space-y-6">
-             <div className="flex flex-col items-center gap-3">
-               <div className={`w-32 h-32 bg-rust-950 border-8 flex items-center justify-center relative shadow-2xl transition-all overflow-hidden ${npc.isFolded ? 'opacity-30 grayscale border-rust-900' : 'border-sand-400'}`}>
+          <div key={npc.name} className="flex flex-col items-center space-y-4">
+             <div className="flex flex-col items-center gap-2">
+               <div className={`w-20 h-20 bg-rust-950 border-4 flex items-center justify-center relative shadow-xl transition-all overflow-hidden ${npc.isFolded ? 'opacity-30 grayscale border-rust-900' : 'border-sand-400'}`}>
                   <Image src={npc.avatar} alt={npc.name} fill className="pixelated object-cover" unoptimized />
                </div>
                <div className="bg-rust-900 text-sand-400 px-4 py-2 text-base font-bold uppercase tracking-widest border-2 border-rust-950 shadow-md">{npc.name}</div>
@@ -518,8 +518,8 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       </div>
 
       {/* Table Center */}
-      <div className="panel-pixel bg-green-950/60 border-sand-400 min-h-[450px] flex flex-col items-center justify-center relative space-y-12 shadow-[0_0_150px_rgba(0,0,0,0.9)_inset]">
-        <div className="absolute top-8 left-8 font-heading text-sand-500 opacity-60 uppercase tracking-[0.3em] text-2xl">Pot: 💰 {pot}</div>
+      <div className="panel-pixel bg-green-950/60 border-sand-400 min-h-[300px] flex flex-col items-center justify-center relative space-y-6 shadow-[0_0_150px_rgba(0,0,0,0.9)_inset]">
+        <div className="absolute top-4 left-6 font-heading text-sand-500 opacity-60 uppercase tracking-[0.3em] text-xl">Pot: 💰 {pot}</div>
         
         <div className="flex gap-8">
           {[...Array(5)].map((_, i) => (
@@ -544,11 +544,11 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       </div>
 
       {/* Player Area */}
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-16 pt-16">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-8 pt-8">
         
-        <div className="panel-pixel p-10 bg-rust-950/90 border-sand-400 shadow-none text-center space-y-6 shrink-0 min-w-[300px]">
-           <p className="text-xl uppercase text-sand-500 font-bold tracking-[0.3em]">Your Hole Cards</p>
-           <div className="flex gap-6 justify-center">
+        <div className="panel-pixel p-6 bg-rust-950/90 border-sand-400 shadow-none text-center space-y-4 shrink-0 min-w-[260px]">
+           <p className="text-lg uppercase text-sand-500 font-bold tracking-[0.2em]">Your Hole Cards</p>
+           <div className="flex gap-4 justify-center">
               {playerHand.map((card, i) => (
                 <div key={i} className="w-24 h-36 bg-white border-4 border-rust-900 rounded-xl flex items-center justify-center text-3xl font-bold text-rust-900 animate-in zoom-in duration-700 shadow-2xl hover:scale-110 transition-transform">
                   {card.rank}<span className={getSuitColor(card.suit)}>{card.suit}</span>

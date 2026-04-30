@@ -112,11 +112,11 @@ export default async function TradesPage() {
               <div className="space-y-4">
                 {outgoingTrades?.map((trade) => (
                   <div key={trade.id} className="panel-pixel py-4 px-6 border-sand-500/30">
-                    <div className="flex justify-between text-xs uppercase mb-2">
-                      <span className="text-sand-500">To: {trade.receiver?.username}</span>
+                    <div className="flex justify-between text-sm uppercase mb-2">
+                      <span className="text-sand-400">To: {trade.receiver?.username}</span>
                       <span className="text-terracotta-400 font-bold">WAITING...</span>
                     </div>
-                    <p className="text-[10px] text-sand-600 italic">Sent on {new Date(trade.created_at).toLocaleDateString()}</p>
+                    <p className="text-xs text-sand-600 italic">Sent on {new Date(trade.created_at).toLocaleDateString()}</p>
                   </div>
                 ))}
               </div>

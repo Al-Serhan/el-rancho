@@ -1,10 +1,27 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 
 // A simple 8-bit sound synthesizer using the Web Audio API
 export const useSound = () => {
+  const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    setIsMuted(localStorage.getItem('isMuted') === 'true');
+    const handleStorage = () => setIsMuted(localStorage.getItem('isMuted') === 'true');
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  const toggleMute = () => {
+    const newVal = !isMuted;
+    setIsMuted(newVal);
+    localStorage.setItem('isMuted', newVal.toString());
+    window.dispatchEvent(new Event('storage'));
+  };
+
   const playSound = useCallback((type: 'click' | 'hover' | 'flip' | 'chip' | 'deal' | 'error' | 'win') => {
+    if (localStorage.getItem('isMuted') === 'true') return;
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -114,7 +131,7 @@ export const useSound = () => {
     }
   }, []);
 
-  return { playSound };
+  return { playSound, isMuted, toggleMute };
 };
 
 // Global click/hover interceptor
