@@ -550,7 +550,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     else if (entries[0].count === 2 && entries[1]?.count === 2) { category = 2; label = 'Two Pair'; }
     else if (entries[0].count === 2) { category = 1; label = 'One Pair'; }
 
-    let orderedRanks: number[] = [];
+    const orderedRanks: number[] = [];
     entries.forEach(e => { for(let i=0; i<e.count; i++) orderedRanks.push(e.rank); });
     while (orderedRanks.length < 5) orderedRanks.push(0);
 
