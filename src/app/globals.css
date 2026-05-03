@@ -107,6 +107,36 @@
   .animate-pulse-slow {
     animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
+  @keyframes deal-card {
+    0% {
+      opacity: 0;
+      transform: translateY(-30vh) scale(0.5) rotate(-180deg);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1) rotate(0deg);
+    }
+  }
+
+  .animate-deal {
+    animation: deal-card 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  }
+
+  @keyframes deal-community {
+    0% {
+      opacity: 0;
+      transform: translateY(-10vh) scale(0.5) rotate(-90deg);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1.05) rotate(0deg);
+    }
+  }
+
+  .animate-deal-community {
+    animation: deal-community 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  }
 }
 
 @layer utilities {

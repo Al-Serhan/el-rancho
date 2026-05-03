@@ -554,9 +554,9 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
              
              {/* NPC Cards Revealed at result */}
              {(phase === 'result') && (
-               <div className="flex gap-2 animate-in zoom-in duration-500">
+               <div className="flex gap-2">
                   {npc.hand.map((c, i) => (
-                    <div key={i} className={`w-10 h-14 bg-white border-2 border-rust-900 rounded flex items-center justify-center text-lg font-bold ${npc.isFolded ? 'opacity-50' : 'text-rust-900'}`}>
+                    <div key={i} style={{ animationDelay: `${i * 150}ms` }} className={`w-10 h-14 bg-white border-2 border-rust-900 rounded flex items-center justify-center text-lg font-bold animate-deal ${npc.isFolded ? 'opacity-50' : 'text-rust-900'}`}>
                       {c.rank}<span className={getSuitColor(c.suit)}>{c.suit}</span>
                     </div>
                   ))}
@@ -579,7 +579,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         
         <div className="flex gap-8">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className={`w-28 h-40 rounded-xl border-4 flex items-center justify-center text-3xl font-bold transition-all duration-700 shadow-2xl ${communityCards[i] ? 'bg-white text-rust-900 border-sand-200 scale-105' : 'bg-rust-900/30 border-rust-900 border-dashed scale-95 opacity-20'}`}>
+            <div key={i} style={{ animationDelay: `${i * 150}ms` }} className={`w-28 h-40 rounded-xl border-4 flex items-center justify-center text-3xl font-bold transition-all shadow-2xl ${communityCards[i] ? 'bg-white text-rust-900 border-sand-200 animate-deal-community scale-105' : 'bg-rust-900/30 border-rust-900 border-dashed scale-95 opacity-20'}`}>
                {communityCards[i] ? (
                  <>
                    {communityCards[i].rank}<span className={getSuitColor(communityCards[i].suit)}>{communityCards[i].suit}</span>
@@ -606,7 +606,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
            <p className="text-lg uppercase text-sand-500 font-bold tracking-[0.2em]">Your Hole Cards</p>
            <div className="flex gap-4 justify-center">
               {playerHand.map((card, i) => (
-                <div key={i} className="w-24 h-36 bg-white border-4 border-rust-900 rounded-xl flex items-center justify-center text-3xl font-bold text-rust-900 animate-in zoom-in duration-700 shadow-2xl hover:scale-110 transition-transform">
+                <div key={i} style={{ animationDelay: `${i * 200}ms` }} className="w-24 h-36 bg-white border-4 border-rust-900 rounded-xl flex items-center justify-center text-3xl font-bold text-rust-900 animate-deal shadow-2xl hover:scale-110 transition-transform">
                   {card.rank}<span className={getSuitColor(card.suit)}>{card.suit}</span>
                 </div>
               ))}
