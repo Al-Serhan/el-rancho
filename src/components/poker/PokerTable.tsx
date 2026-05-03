@@ -100,47 +100,82 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       const rank = evaluateHand(npcAll);
       const score = rank.score;
 
+      const rV: Record<Rank, number> = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
+
       // --- FOLD LOGIC ---
       let foldChance = 0;
-      if (npc.personality === 'cowardly') {
-        if (score < 1000000) foldChance = 0.55;       // No pair → 55% fold
-        else if (score < 1050000) foldChance = 0.25;   // Low pair → 25% fold
-      } else if (npc.personality === 'balanced') {
-        if (score < 500000) foldChance = 0.35;         // Trash hand → 35% fold
-        else if (score < 1000000) foldChance = 0.15;   // High card → 15% fold
-      } else { // aggressive
-        if (score < 1000000) foldChance = 0.25;        // No pair → 25% fold
-        else foldChance = 0.05;                        // Low pair → 5% fold
+      let hasDraw = false;
+
+      if (currentCommunity.length > 0) {
+        // Check for flush draw
+        const suitCounts: Record<string, number> = { '♠': 0, '♥': 0, '♦': 0, '♣': 0 };
+        npcAll.forEach(c => suitCounts[c.suit]++);
+        hasDraw = Object.values(suitCounts).some(count => count === 4);
       }
 
-      if (currentCommunity.length >= 3 && Math.random() < foldChance) {
-        actions.push(`${npc.name} folds!`);
+      if (currentCommunity.length === 0) {
+        // Pre-flop logic
+        const rank1 = rV[npc.hand[0].rank];
+        const rank2 = rV[npc.hand[1].rank];
+        const highCard = Math.max(rank1, rank2);
+        const lowCard = Math.min(rank1, rank2);
+        const isSuited = npc.hand[0].suit === npc.hand[1].suit;
+        const isPair = rank1 === rank2;
+
+        let isTrash = false;
+        if (!isPair && !isSuited && highCard < 10) isTrash = true;
+        if (!isPair && highCard < 13 && lowCard < 7) isTrash = true;
+
+        if (npc.personality === 'cowardly') foldChance = isTrash ? 0.75 : 0.1;
+        else if (npc.personality === 'balanced') foldChance = isTrash ? 0.45 : 0.05;
+        else foldChance = isTrash ? 0.2 : 0;
+        
+      } else {
+        // Post-flop logic
+        if (npc.personality === 'cowardly') {
+          if (score < 1000000 && !hasDraw) foldChance = 0.55;
+          else if (score < 1050000) foldChance = 0.25;
+        } else if (npc.personality === 'balanced') {
+          if (score < 500000 && !hasDraw) foldChance = 0.35;
+          else if (score < 1000000 && !hasDraw) foldChance = 0.15;
+        } else { // aggressive
+          if (score < 1000000 && !hasDraw) foldChance = 0.25;
+          else foldChance = 0.05;
+        }
+      }
+
+      // Add a slight variance so it's not strictly deterministic
+      if (Math.random() < foldChance) {
+        actions.push(`${npc.name} folds${currentCommunity.length === 0 ? ' pre-flop' : ''}!`);
         return { ...npc, isFolded: true };
       }
 
       // --- RAISE LOGIC ---
       let raiseChance = 0;
+      let raiseMultiplier = 1;
+      
       if (npc.personality === 'aggressive') {
-        if (score >= 2000000) raiseChance = 0.80;      // Two pair+ → 80%
-        else if (score >= 1000000) raiseChance = 0.40;  // Any pair → 40%
-        else raiseChance = 0.15;                        // Bluff raise! → 15%
+        if (score >= 2000000) { raiseChance = 0.80; raiseMultiplier = Math.random() > 0.4 ? 2 : 1; }
+        else if (score >= 1000000) raiseChance = 0.40;
+        else raiseChance = 0.15; // Bluff raise
       } else if (npc.personality === 'balanced') {
-        if (score >= 3000000) raiseChance = 0.70;      // Three of a kind+ → 70%
-        else if (score >= 2000000) raiseChance = 0.40;  // Two pair → 40%
-        else if (score >= 1000000) raiseChance = 0.15;  // Pair → 15%
+        if (score >= 3000000) { raiseChance = 0.70; raiseMultiplier = Math.random() > 0.6 ? 1.5 : 1; }
+        else if (score >= 2000000) raiseChance = 0.40;
+        else if (score >= 1000000) raiseChance = 0.15;
       } else { // cowardly
-        if (score >= 4000000) raiseChance = 0.50;      // Straight+ → 50%
-        else if (score >= 2000000) raiseChance = 0.15;  // Two pair → 15%
+        if (score >= 4000000) raiseChance = 0.50;
+        else if (score >= 2000000) raiseChance = 0.15;
       }
 
       if (Math.random() < raiseChance) {
-        const raiseAmt = currentBet;
+        const raiseAmt = Math.floor(currentBet * raiseMultiplier);
         potChange += raiseAmt;
 
-        // Determine if it's a bluff (raising with a weak hand)
         const isBluff = score < 1000000;
         if (isBluff) {
           actions.push(`${npc.name} raises! 💀 (Bluff?)`);
+        } else if (raiseMultiplier > 1) {
+          actions.push(`${npc.name} raises big! 🔥`);
         } else {
           actions.push(`${npc.name} raises! 💰`);
         }
@@ -155,26 +190,27 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     return { updatedNpcs, potChange, actions };
   };
 
-  const handleAction = async (action: 'fold' | 'check' | 'call' | 'raise') => {
+  const handleAction = async (action: 'fold' | 'check' | 'call' | 'raise' | 'all-in') => {
     if (action === 'fold') {
       setMessage('You folded. The Saloon takes your ante.');
       await resolveShowdown(false, true);
       return;
     }
 
-    if (action === 'raise') {
-      const raiseAmt = bet * 2;
-      if (gold < raiseAmt) return alert('Not enough gold to raise!');
+    if (action === 'raise' || action === 'all-in') {
+      const raiseAmt = action === 'all-in' ? gold : bet * 2;
+      if (action !== 'all-in' && gold < raiseAmt) return alert('Not enough gold to raise!');
+      if (action === 'all-in' && gold <= 0) return alert('You have no gold to go all in!');
       
       setGold(prev => prev - raiseAmt);
       setInvested(prev => prev + raiseAmt);
       
       // NPC response to player's raise — they evaluate whether to fold, call, or re-raise
-      const { updatedNpcs, potChange, actions } = processNpcTurns(npcs, communityCards, bet);
+      const { updatedNpcs, potChange, actions } = processNpcTurns(npcs, communityCards, raiseAmt);
       
       setNpcs(updatedNpcs);
       const activeNpcs = updatedNpcs.filter(n => !n.isFolded);
-      setPot(prev => prev + raiseAmt + potChange + (bet * activeNpcs.length));
+      setPot(prev => prev + raiseAmt + potChange + (raiseAmt * activeNpcs.length));
       
       if (activeNpcs.length === 0) {
         setMessage('Everyone folded! The pot is yours.');
@@ -184,7 +220,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
 
       const foldCount = updatedNpcs.filter(n => n.isFolded).length - npcs.filter(n => n.isFolded).length;
       const raiseCount = actions.filter(a => a.includes('raises')).length;
-      let msg = `You raised to ${raiseAmt}!`;
+      let msg = action === 'all-in' ? `You went ALL IN!` : `You raised to ${raiseAmt}!`;
       if (foldCount > 0) msg += ` ${foldCount} folded.`;
       if (raiseCount > 0) msg += ` ${raiseCount} re-raised!`;
       if (foldCount === 0 && raiseCount === 0) msg += ' Everyone calls.';
@@ -591,7 +627,8 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
                 <button onClick={() => handleAction('check')} className="btn-pixel bg-sand-400 text-rust-900 border-sand-600 text-sm py-6 uppercase tracking-widest">
                    {phase === 'showdown' ? 'SHOWDOWN' : 'CHECK / CALL'}
                 </button>
-                <button onClick={() => handleAction('raise')} className="btn-pixel bg-terracotta-400 text-rust-900 border-terracotta-600 text-sm py-6 col-span-2 uppercase tracking-[0.2em] font-bold">RAISE STAKES (x2)</button>
+                <button onClick={() => handleAction('raise')} className="btn-pixel bg-terracotta-400 text-rust-900 border-terracotta-600 text-sm py-6 uppercase tracking-[0.2em] font-bold">RAISE STAKES (x2)</button>
+                <button onClick={() => handleAction('all-in')} className="btn-pixel bg-red-700 text-white border-red-900 text-sm py-6 uppercase tracking-[0.2em] font-bold hover:bg-red-600">ALL IN</button>
              </div>
            )}
         </div>
