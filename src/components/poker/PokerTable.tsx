@@ -46,6 +46,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [message, setMessage] = useState('Step up to the table, partner.');
   const [npcChat, setNpcChat] = useState<string>('');
   const [honorCue, setHonorCue] = useState<string | null>(null);
+  const [showRules, setShowRules] = useState(false);
   const { playSound } = useSound();
 
   const createDeck = () => {
@@ -108,7 +109,8 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         if (score < 500000) foldChance = 0.35;         // Trash hand → 35% fold
         else if (score < 1000000) foldChance = 0.15;   // High card → 15% fold
       } else { // aggressive
-        if (score < 100000) foldChance = 0.08;         // Absolute garbage → 8% fold
+        if (score < 1000000) foldChance = 0.25;        // No pair → 25% fold
+        else foldChance = 0.05;                        // Low pair → 5% fold
       }
 
       if (currentCommunity.length >= 3 && Math.random() < foldChance) {
@@ -119,9 +121,9 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       // --- RAISE LOGIC ---
       let raiseChance = 0;
       if (npc.personality === 'aggressive') {
-        if (score >= 2000000) raiseChance = 0.85;      // Two pair+ → 85%
-        else if (score >= 1000000) raiseChance = 0.50;  // Any pair → 50%
-        else raiseChance = 0.25;                        // Bluff raise! → 25%
+        if (score >= 2000000) raiseChance = 0.80;      // Two pair+ → 80%
+        else if (score >= 1000000) raiseChance = 0.40;  // Any pair → 40%
+        else raiseChance = 0.15;                        // Bluff raise! → 15%
       } else if (npc.personality === 'balanced') {
         if (score >= 3000000) raiseChance = 0.70;      // Three of a kind+ → 70%
         else if (score >= 2000000) raiseChance = 0.40;  // Two pair → 40%
@@ -250,10 +252,11 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   };
 
   const showNpcAction = (actions: string[], currentNpcs: NPC[]) => {
-    // Find the most interesting action to show as chat
-    const raiseAction = actions.find(a => a.includes('raises'));
-    const foldAction = actions.find(a => a.includes('folds'));
-    const actionToShow = raiseAction || foldAction || actions[0];
+    // Shuffle actions to ensure fairness when multiple bots act
+    const shuffledActions = [...actions].sort(() => Math.random() - 0.5);
+    const raiseAction = shuffledActions.find(a => a.includes('raises'));
+    const foldAction = shuffledActions.find(a => a.includes('folds'));
+    const actionToShow = raiseAction || foldAction || shuffledActions[0];
     
     if (!actionToShow) return;
     
@@ -376,13 +379,18 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     }));
 
     let isWinner = false;
+    let winningNpc = null;
+    
     if (playerFolded) {
       isWinner = false;
+      if (npcResults.length > 0) {
+        winningNpc = npcResults.reduce((prev, curr) => (prev.rank.score > curr.rank.score) ? prev : curr);
+      }
     } else if (autoWin || npcResults.length === 0) {
       isWinner = true;
     } else {
-      const bestNpc = npcResults.reduce((prev, curr) => (prev.rank.score > curr.rank.score) ? prev : curr);
-      isWinner = playerRank.score >= bestNpc.rank.score;
+      winningNpc = npcResults.reduce((prev, curr) => (prev.rank.score > curr.rank.score) ? prev : curr);
+      isWinner = playerRank.score >= winningNpc.rank.score;
     }
 
     const winnings = isWinner ? pot : 0;
@@ -391,15 +399,19 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       const result = await resolvePokerGame(invested, winnings);
       setGold(result.newBalance);
       if (playerFolded) {
-        setMessage('You folded. Better luck next time.');
+        if (winningNpc) {
+          setMessage(`You folded. ${winningNpc.name} won with a ${winningNpc.rank.label}.`);
+        } else {
+          setMessage('You folded. The Saloon takes your ante.');
+        }
       } else if (isWinner) {
-        setMessage(autoWin ? 'WINNER! Everyone folded.' : `WINNER! ${playerRank.label}. You took the pot!`);
+        setMessage(autoWin ? 'You won! Everyone folded.' : `WINNER! You won with a ${playerRank.label}!`);
         playSound('win');
         incrementHonor(10);
         setHonorCue('+10 HONOR');
         setTimeout(() => setHonorCue(null), 3000);
       } else {
-        setMessage(`LOSE. ${playerRank.label} wasn't enough.`);
+        setMessage(`LOSE. ${winningNpc?.name} won with a ${winningNpc?.rank.label}.`);
         playSound('error');
       }
       setPhase('result');
@@ -585,6 +597,61 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         </div>
 
       </div>
+
+      {/* Rules Button */}
+      <button 
+        onClick={() => setShowRules(true)}
+        className="fixed right-4 top-1/2 -translate-y-1/2 btn-pixel bg-sand-400 text-rust-900 rotate-90 origin-right py-2 px-4 text-sm z-40 shadow-lg whitespace-nowrap"
+      >
+        POKER RULES
+      </button>
+
+      {/* Rules Modal */}
+      {showRules && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="panel-pixel bg-rust-950 border-sand-400 max-w-2xl w-full max-h-[80vh] overflow-y-auto relative p-8">
+            <button 
+              onClick={() => setShowRules(false)}
+              className="absolute top-4 right-4 text-sand-500 hover:text-white text-2xl font-bold"
+            >
+              ×
+            </button>
+            <h2 className="text-3xl font-heading text-terracotta-400 mb-6 tracking-widest text-center">Poker Rules</h2>
+            <div className="space-y-4 text-sand-200 text-sm leading-relaxed">
+              <p>Welcome to El Rancho Texas Hold&apos;em! Here&apos;s how to play:</p>
+              
+              <h3 className="text-xl text-sand-400 mt-6 mb-2 font-heading">The Basics</h3>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>You receive 2 private cards (hole cards).</li>
+                <li>5 community cards are dealt to the center of the table.</li>
+                <li>Make the best 5-card hand using any combination of your cards and community cards.</li>
+              </ul>
+
+              <h3 className="text-xl text-sand-400 mt-6 mb-2 font-heading">Hand Rankings (Highest to Lowest)</h3>
+              <ol className="list-decimal pl-6 space-y-1">
+                <li><strong className="text-white">Royal Flush:</strong> A, K, Q, J, 10, all same suit.</li>
+                <li><strong className="text-white">Straight Flush:</strong> Five cards in a sequence, all same suit.</li>
+                <li><strong className="text-white">Four of a Kind:</strong> All four cards of the same rank.</li>
+                <li><strong className="text-white">Full House:</strong> Three of a kind with a pair.</li>
+                <li><strong className="text-white">Flush:</strong> Any five cards of the same suit.</li>
+                <li><strong className="text-white">Straight:</strong> Five cards in a sequence.</li>
+                <li><strong className="text-white">Three of a Kind:</strong> Three cards of the same rank.</li>
+                <li><strong className="text-white">Two Pair:</strong> Two different pairs.</li>
+                <li><strong className="text-white">One Pair:</strong> Two cards of the same rank.</li>
+                <li><strong className="text-white">High Card:</strong> Highest card plays if no other hand is made.</li>
+              </ol>
+
+              <h3 className="text-xl text-sand-400 mt-6 mb-2 font-heading">Betting Actions</h3>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong className="text-white">Fold:</strong> Give up your hand and lose your bets.</li>
+                <li><strong className="text-white">Check:</strong> Pass the action to the next player without betting.</li>
+                <li><strong className="text-white">Call:</strong> Match the current bet.</li>
+                <li><strong className="text-white">Raise:</strong> Increase the current bet.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
