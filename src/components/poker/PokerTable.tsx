@@ -113,8 +113,9 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       if (npc.isFolded) return npc;
 
       const npcAll = [...npc.hand, ...currentCommunity];
-      const rank = evaluateHand(npcAll);
-      const score = rank.score;
+      const handEval = evaluateHand(npcAll);
+      const category = handEval.category;
+      const mainRank = handEval.mainRank;
 
       // --- FOLD LOGIC ---
       let foldChance = 0;
@@ -152,24 +153,26 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
           const betToPotRatio = currentBet / (pot + 1);
           let baseFold = 0;
           
-          if (score < 1000000) baseFold = 0.6; // High Card
-          else if (score < 1100000) baseFold = 0.3; // Low Pair (2s-10s)
-          else if (score < 2000000) baseFold = 0.1; // High Pair (Js-As)
+          if (category === 0) baseFold = 0.6; // High Card
+          else if (category === 1 && mainRank < 11) baseFold = 0.3; // Low Pair (2s-10s)
+          else if (category === 1 && mainRank >= 11) baseFold = 0.1; // High Pair (Js-As)
           
           // Bots NEVER fold if they have Two Pair or better!
-          if (score < 2000000) {
+          if (category < 2) {
             if (npc.personality === 'cowardly') foldChance = baseFold + 0.2;
             else if (npc.personality === 'balanced') foldChance = baseFold;
             else foldChance = Math.max(0, baseFold - 0.2); // aggressive
 
             if (hasDraw) foldChance *= 0.3; // Much less likely to fold with a draw
 
-            // Adjust fold chance if the player makes a huge bet or goes all-in
-            if (currentBet > 100) {
-               foldChance += 0.3; // Big bets scare everyone with a single pair or worse
-               if (score < 1100000) foldChance += 0.3; // Weak pairs almost always fold to huge bets
-            } else if (betToPotRatio > 0.5) {
-               foldChance += 0.15;
+            // Adjust fold chance based strictly on pot odds (betToPotRatio)
+            if (betToPotRatio > 0.8) {
+               foldChance += 0.4; // Pot-sized bet or larger scares everyone
+               if (category === 1 && mainRank < 11) foldChance += 0.4; // Weak pairs almost always fold to pot-sized bets
+            } else if (betToPotRatio > 0.4) {
+               foldChance += 0.2; // Half-pot bet
+            } else if (betToPotRatio > 0.2) {
+               foldChance += 0.05;
             }
           }
         }
@@ -185,16 +188,16 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       let raiseMultiplier = 1;
       
       if (npc.personality === 'aggressive') {
-        if (score >= 2000000) { raiseChance = 0.80; raiseMultiplier = Math.random() > 0.4 ? 2 : 1; }
-        else if (score >= 1000000) raiseChance = 0.40;
+        if (category >= 2) { raiseChance = 0.80; raiseMultiplier = Math.random() > 0.4 ? 2 : 1; }
+        else if (category === 1) raiseChance = 0.40;
         else raiseChance = 0.15; // Bluff raise
       } else if (npc.personality === 'balanced') {
-        if (score >= 3000000) { raiseChance = 0.70; raiseMultiplier = Math.random() > 0.6 ? 1.5 : 1; }
-        else if (score >= 2000000) raiseChance = 0.40;
-        else if (score >= 1000000) raiseChance = 0.15;
+        if (category >= 3) { raiseChance = 0.70; raiseMultiplier = Math.random() > 0.6 ? 1.5 : 1; }
+        else if (category >= 2) raiseChance = 0.40;
+        else if (category === 1) raiseChance = 0.15;
       } else { // cowardly
-        if (score >= 4000000) raiseChance = 0.50;
-        else if (score >= 2000000) raiseChance = 0.15;
+        if (category >= 4) raiseChance = 0.50;
+        else if (category >= 2) raiseChance = 0.15;
       }
 
       if (Math.random() < raiseChance) {
@@ -203,7 +206,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         potChange += raiseAmt;
         if (raiseAmt > maxBotRaise) maxBotRaise = raiseAmt;
 
-        const isBluff = score < 1000000;
+        const isBluff = category === 0;
         if (isBluff) {
           actions.push(`${npc.name} raises! 💀 (Bluff?)`);
         } else if (raiseMultiplier > 1) {
@@ -518,73 +521,74 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
 
   const getSuitColor = (suit: Suit) => (suit === '♥' || suit === '♦') ? 'text-red-600' : 'text-rust-900';
 
-  const evaluateHand = (handCards: Card[]) => {
-    if (handCards.length < 2) return { score: 0, label: 'Evaluating...' };
+  const evaluate5CardHand = (cards: Card[]) => {
+    const rV: Record<Rank, number> = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
+    const ranks = cards.map(c => rV[c.rank]).sort((a, b) => b - a);
+    
+    let isFlush = false;
+    let isStraight = false;
 
-    const rV: Record<Rank, number> = {
-      '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
-      'J': 11, 'Q': 12, 'K': 13, 'A': 14
-    };
+    if (cards.length >= 5) {
+      isFlush = cards.every(c => c.suit === cards[0].suit);
+      if (ranks[0] - ranks[4] === 4 && new Set(ranks).size === 5) isStraight = true;
+      if (ranks.join(',') === '14,5,4,3,2') { isStraight = true; ranks[0] = 5; ranks[1] = 4; ranks[2] = 3; ranks[3] = 2; ranks[4] = 1; ranks.sort((a,b)=>b-a); }
+    }
 
-    const counts: Record<string, number> = {};
-    const suitCounts: Record<Suit, number> = { '♠': 0, '♥': 0, '♦': 0, '♣': 0 };
-    handCards.forEach(c => {
-      counts[c.rank] = (counts[c.rank] || 0) + 1;
-      suitCounts[c.suit]++;
-    });
+    const counts: Record<number, number> = {};
+    ranks.forEach(r => counts[r] = (counts[r] || 0) + 1);
+    const entries = Object.entries(counts).map(([r, c]) => ({ rank: parseInt(r), count: c })).sort((a, b) => b.count - a.count || b.rank - a.rank);
 
-    const ranks = handCards.map(c => rV[c.rank]).sort((a, b) => b - a);
-    const uR = Array.from(new Set(ranks)).sort((a, b) => b - a);
-
-    // Categories: 8: SF, 7: 4K, 6: FH, 5: Flush, 4: Straight, 3: 3K, 2: 2P, 1: 1P, 0: HC
     let category = 0;
     let label = 'High Card';
-    let mainRank = ranks[0];
-    let secondaryRank = 0;
+    
+    if (isFlush && isStraight) { category = 8; label = 'Straight Flush'; }
+    else if (entries[0].count === 4) { category = 7; label = 'Four of a Kind'; }
+    else if (entries[0].count === 3 && entries[1]?.count >= 2) { category = 6; label = 'Full House'; }
+    else if (isFlush) { category = 5; label = 'Flush'; }
+    else if (isStraight) { category = 4; label = 'Straight'; }
+    else if (entries[0].count === 3) { category = 3; label = 'Three of a Kind'; }
+    else if (entries[0].count === 2 && entries[1]?.count === 2) { category = 2; label = 'Two Pair'; }
+    else if (entries[0].count === 2) { category = 1; label = 'One Pair'; }
 
-    // Check Flush
-    let flushSuit: Suit | null = null;
-    for (const suit of SUITS) { if (suitCounts[suit] >= 5) flushSuit = suit; }
+    let orderedRanks: number[] = [];
+    entries.forEach(e => { for(let i=0; i<e.count; i++) orderedRanks.push(e.rank); });
+    while (orderedRanks.length < 5) orderedRanks.push(0);
 
-    // Check Straight
-    let isStraight = false;
-    let straightHigh = 0;
-    for (let i = 0; i <= uR.length - 5; i++) {
-      if (uR[i] - uR[i+4] === 4) { isStraight = true; straightHigh = uR[i]; break; }
-    }
-    if (!isStraight && uR.includes(14) && uR.includes(2) && uR.includes(3) && uR.includes(4) && uR.includes(5)) {
-      isStraight = true; straightHigh = 5;
-    }
+    const score = category * 10000000000 + 
+                  orderedRanks[0] * 100000000 + 
+                  orderedRanks[1] * 1000000 + 
+                  orderedRanks[2] * 10000 + 
+                  orderedRanks[3] * 100 + 
+                  orderedRanks[4];
 
-    // Straight Flush
-    if (flushSuit && isStraight) {
-      const fR = handCards.filter(c => c.suit === flushSuit).map(c => rV[c.rank]).sort((a, b) => b - a);
-      const fuR = Array.from(new Set(fR));
-      for (let i = 0; i <= fuR.length - 5; i++) {
-        if (fuR[i] - fuR[i+4] === 4) { category = 8; straightHigh = fuR[i]; break; }
+    return { score, label, category, mainRank: orderedRanks[0] };
+  };
+
+  const getCombinations = (array: Card[], size: number): Card[][] => {
+    if (array.length <= size) return [array];
+    const result: Card[][] = [];
+    const f = (prefix: Card[], arr: Card[]) => {
+      if (prefix.length === size) {
+        result.push(prefix);
+        return;
       }
-      if (category === 0 && fuR.includes(14) && fuR.includes(2) && fuR.includes(3) && fuR.includes(4) && fuR.includes(5)) {
-        category = 8; straightHigh = 5;
+      for (let i = 0; i < arr.length; i++) {
+        f([...prefix, arr[i]], arr.slice(i + 1));
       }
-      if (category === 8) { label = 'Straight Flush'; mainRank = straightHigh; }
+    };
+    f([], array);
+    return result;
+  };
+
+  const evaluateHand = (handCards: Card[]) => {
+    if (handCards.length === 0) return { score: 0, label: 'Evaluating...', category: 0, mainRank: 0 };
+    const combos = getCombinations(handCards, 5);
+    let bestHand = { score: -1, label: '', category: 0, mainRank: 0 };
+    for (const combo of combos) {
+      const result = evaluate5CardHand(combo);
+      if (result.score > bestHand.score) bestHand = result;
     }
-
-    if (category === 0) {
-      const entries = Object.entries(counts).map(([rank, count]) => ({ rank: rV[rank as Rank], count })).sort((a, b) => b.count - a.count || b.rank - a.rank);
-      if (entries[0].count === 4) { category = 7; label = 'Four of a Kind'; mainRank = entries[0].rank; }
-      else if (entries[0].count === 3 && entries[1]?.count >= 2) { category = 6; label = 'Full House'; mainRank = entries[0].rank; secondaryRank = entries[1].rank; }
-      else if (flushSuit) { category = 5; label = 'Flush'; mainRank = ranks[0]; }
-      else if (isStraight) { category = 4; label = 'Straight'; mainRank = straightHigh; }
-      else if (entries[0].count === 3) { category = 3; label = 'Three of a Kind'; mainRank = entries[0].rank; }
-      else if (entries[0].count === 2 && entries[1]?.count === 2) { category = 2; label = 'Two Pair'; mainRank = entries[0].rank; secondaryRank = entries[1].rank; }
-      else if (entries[0].count === 2) { category = 1; label = 'One Pair'; mainRank = entries[0].rank; }
-      else { category = 0; label = 'High Card'; mainRank = ranks[0]; }
-    }
-
-    const kickerScore = ranks.slice(0, 5).reduce((acc, r, i) => acc + r * Math.pow(15, 4 - i), 0);
-    const finalScore = category * 1000000 + mainRank * 10000 + secondaryRank * 100 + kickerScore / 100;
-
-    return { score: finalScore, label };
+    return bestHand;
   };
 
   return (
@@ -680,7 +684,11 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
                    <input 
                      type="number" 
                      value={bet}
-                     onChange={(e) => setBet(Math.max(1, parseInt(e.target.value) || 1))}
+                     onChange={(e) => {
+                       const maxAnte = Math.max(10, Math.floor(gold / 4));
+                       const val = parseInt(e.target.value) || 10;
+                       setBet(Math.min(maxAnte, Math.max(10, val)));
+                     }}
                      className="bg-rust-950 border-4 border-sand-400 text-white text-center font-pixel text-3xl py-2 w-1/2"
                    />
                 </div>
