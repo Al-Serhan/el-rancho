@@ -49,6 +49,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [showRules, setShowRules] = useState(false);
   const [canRaise, setCanRaise] = useState(true);
   const [callAmount, setCallAmount] = useState(0);
+  const [customRaise, setCustomRaise] = useState<string>('');
   const { playSound } = useSound();
 
   const createDeck = () => {
@@ -119,57 +120,62 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       let foldChance = 0;
       let hasDraw = false;
 
-      if (currentCommunity.length > 0) {
-        // Check for flush draw
-        const suitCounts: Record<string, number> = { '♠': 0, '♥': 0, '♦': 0, '♣': 0 };
-        npcAll.forEach(c => suitCounts[c.suit]++);
-        hasDraw = Object.values(suitCounts).some(count => count === 4);
-      }
+      // Only consider folding if there is an actual bet to call
+      if (currentBet > 0) {
+        if (currentCommunity.length > 0) {
+          // Check for flush draw
+          const suitCounts: Record<string, number> = { '♠': 0, '♥': 0, '♦': 0, '♣': 0 };
+          npcAll.forEach(c => suitCounts[c.suit]++);
+          hasDraw = Object.values(suitCounts).some(count => count === 4);
+        }
 
-      if (currentCommunity.length === 0) {
-        // Pre-flop logic
-        const rV: Record<Rank, number> = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
-        const rank1 = rV[npc.hand[0].rank];
-        const rank2 = rV[npc.hand[1].rank];
-        const highCard = Math.max(rank1, rank2);
-        const lowCard = Math.min(rank1, rank2);
-        const isSuited = npc.hand[0].suit === npc.hand[1].suit;
-        const isPair = rank1 === rank2;
+        if (currentCommunity.length === 0) {
+          // Pre-flop logic
+          const rV: Record<Rank, number> = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
+          const rank1 = rV[npc.hand[0].rank];
+          const rank2 = rV[npc.hand[1].rank];
+          const highCard = Math.max(rank1, rank2);
+          const lowCard = Math.min(rank1, rank2);
+          const isSuited = npc.hand[0].suit === npc.hand[1].suit;
+          const isPair = rank1 === rank2;
 
-        let isTrash = false;
-        if (!isPair && !isSuited && highCard < 10) isTrash = true;
-        if (!isPair && highCard < 13 && lowCard < 7) isTrash = true;
+          let isTrash = false;
+          if (!isPair && !isSuited && highCard < 10) isTrash = true;
+          if (!isPair && highCard < 13 && lowCard < 7) isTrash = true;
 
-        if (npc.personality === 'cowardly') foldChance = isTrash ? 0.75 : 0.1;
-        else if (npc.personality === 'balanced') foldChance = isTrash ? 0.45 : 0.05;
-        else foldChance = isTrash ? 0.2 : 0;
-        
-      } else {
-        // Post-flop logic
-        const betToPotRatio = currentBet / (pot + 1);
-        let baseFold = 0;
-        
-        if (score < 1000000) baseFold = 0.6; // High Card
-        else if (score < 1100000) baseFold = 0.3; // Low Pair (2s-10s)
-        else if (score < 2000000) baseFold = 0.1; // High Pair (Js-As)
-        
-        if (npc.personality === 'cowardly') foldChance = baseFold + 0.2;
-        else if (npc.personality === 'balanced') foldChance = baseFold;
-        else foldChance = Math.max(0, baseFold - 0.2); // aggressive
+          if (npc.personality === 'cowardly') foldChance = isTrash ? 0.75 : 0.1;
+          else if (npc.personality === 'balanced') foldChance = isTrash ? 0.45 : 0.05;
+          else foldChance = isTrash ? 0.2 : 0;
+          
+        } else {
+          // Post-flop logic
+          const betToPotRatio = currentBet / (pot + 1);
+          let baseFold = 0;
+          
+          if (score < 1000000) baseFold = 0.6; // High Card
+          else if (score < 1100000) baseFold = 0.3; // Low Pair (2s-10s)
+          else if (score < 2000000) baseFold = 0.1; // High Pair (Js-As)
+          
+          // Bots NEVER fold if they have Two Pair or better!
+          if (score < 2000000) {
+            if (npc.personality === 'cowardly') foldChance = baseFold + 0.2;
+            else if (npc.personality === 'balanced') foldChance = baseFold;
+            else foldChance = Math.max(0, baseFold - 0.2); // aggressive
 
-        if (hasDraw) foldChance *= 0.3; // Much less likely to fold with a draw
+            if (hasDraw) foldChance *= 0.3; // Much less likely to fold with a draw
 
-        // Adjust fold chance if the player makes a huge bet or goes all-in
-        if (currentBet > 100) {
-           foldChance += 0.3; // Big bets scare everyone
-           if (score < 1100000) foldChance += 0.3; // Weak pairs almost always fold to huge bets
-        } else if (betToPotRatio > 0.5) {
-           foldChance += 0.15;
+            // Adjust fold chance if the player makes a huge bet or goes all-in
+            if (currentBet > 100) {
+               foldChance += 0.3; // Big bets scare everyone with a single pair or worse
+               if (score < 1100000) foldChance += 0.3; // Weak pairs almost always fold to huge bets
+            } else if (betToPotRatio > 0.5) {
+               foldChance += 0.15;
+            }
+          }
         }
       }
 
-      // Add a slight variance so it's not strictly deterministic
-      if (Math.random() < foldChance) {
+      if (foldChance > 0 && Math.random() < foldChance) {
         actions.push(`${npc.name} folds${currentCommunity.length === 0 ? ' pre-flop' : ''}!`);
         return { ...npc, isFolded: true };
       }
@@ -192,7 +198,8 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       }
 
       if (Math.random() < raiseChance) {
-        const raiseAmt = Math.floor(currentBet * raiseMultiplier);
+        const baseBetForRaise = currentBet > 0 ? currentBet : bet;
+        const raiseAmt = Math.floor(baseBetForRaise * raiseMultiplier);
         potChange += raiseAmt;
         if (raiseAmt > maxBotRaise) maxBotRaise = raiseAmt;
 
@@ -215,7 +222,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     return { updatedNpcs, potChange, actions, maxBotRaise };
   };
 
-  const handleAction = async (action: 'fold' | 'check' | 'call' | 'raise' | 'all-in') => {
+  const handleAction = async (action: 'fold' | 'check' | 'call' | 'raise' | 'all-in', customAmount?: number) => {
     if (action === 'fold') {
       setMessage('You folded. The Saloon takes your ante.');
       await resolveShowdown(false, true);
@@ -224,8 +231,11 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
 
     if (action === 'raise' || action === 'all-in') {
       const baseRaise = bet * 2;
-      const raiseAmt = action === 'all-in' ? gold : baseRaise + callAmount;
-      if (action !== 'all-in' && gold < raiseAmt) return alert('Not enough gold to raise!');
+      const minRaise = baseRaise + callAmount;
+      const raiseAmt = action === 'all-in' ? gold : (customAmount || minRaise);
+      
+      if (action !== 'all-in' && raiseAmt < minRaise) return alert(`Minimum raise is ${minRaise}!`);
+      if (action !== 'all-in' && gold < raiseAmt) return alert('Not enough gold to raise that much!');
       if (action === 'all-in' && gold <= 0) return alert('You have no gold to go all in!');
       
       setGold(prev => prev - raiseAmt);
@@ -303,6 +313,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     setDeck(newDeck);
     setCanRaise(true); // Reset raise ability for the new street
     setCallAmount(0); // Reset outstanding bets for the new street
+    setCustomRaise(''); // Clear custom raise input
 
     // NPC turns after community cards are dealt
     const { updatedNpcs, potChange, actions, maxBotRaise } = processNpcTurns(npcs, nextCommunity, bet);
@@ -664,6 +675,15 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
                      <button key={val} onClick={() => setBet(val)} className={`btn-pixel flex-1 py-5 px-0 ${bet === val ? 'bg-sand-400 text-rust-950' : 'bg-rust-800'}`}>{val}</button>
                    ))}
                 </div>
+                <div className="flex gap-4 w-full items-center justify-between">
+                   <span className="text-sand-500 font-bold uppercase tracking-widest text-lg">Custom Bet:</span>
+                   <input 
+                     type="number" 
+                     value={bet}
+                     onChange={(e) => setBet(Math.max(1, parseInt(e.target.value) || 1))}
+                     className="bg-rust-950 border-4 border-sand-400 text-white text-center font-pixel text-3xl py-2 w-1/2"
+                   />
+                </div>
                 <button onClick={startRound} className="btn-pixel w-full py-8 text-3xl tracking-[0.4em] font-heading">TAKE A SEAT</button>
              </div>
            ) : phase === 'result' ? (
@@ -675,10 +695,24 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
                    {phase === 'showdown' ? 'SHOWDOWN' : (callAmount > 0 ? `CALL (💰 ${callAmount})` : 'CHECK')}
                 </button>
                 {canRaise && phase !== 'showdown' && (
-                  <>
-                    <button onClick={() => handleAction('raise')} className="btn-pixel bg-terracotta-400 text-rust-900 border-terracotta-600 text-sm py-6 uppercase tracking-[0.2em] font-bold">RAISE STAKES (x2)</button>
+                  <div className="col-span-2 grid grid-cols-3 gap-6">
+                    <input 
+                      type="number" 
+                      placeholder={`Min: ${bet * 2 + callAmount}`}
+                      min={bet * 2 + callAmount}
+                      max={gold}
+                      value={customRaise}
+                      onChange={(e) => setCustomRaise(e.target.value)}
+                      className="bg-rust-950 border-4 border-terracotta-600 text-white text-center font-pixel text-3xl placeholder:text-rust-800 placeholder:text-xl"
+                    />
+                    <button 
+                      onClick={() => handleAction('raise', customRaise ? parseInt(customRaise) : undefined)} 
+                      className="btn-pixel bg-terracotta-400 text-rust-900 border-terracotta-600 text-sm py-6 uppercase tracking-[0.2em] font-bold"
+                    >
+                      RAISE
+                    </button>
                     <button onClick={() => handleAction('all-in')} className="btn-pixel bg-red-700 text-white border-red-900 text-sm py-6 uppercase tracking-[0.2em] font-bold hover:bg-red-600">ALL IN</button>
-                  </>
+                  </div>
                 )}
              </div>
            )}
