@@ -56,7 +56,16 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         newDeck.push({ suit, rank });
       }
     }
-    return newDeck.sort(() => Math.random() - 0.5);
+    // Fisher-Yates Shuffle using Cryptographically Secure Pseudo-Randomness (CSPRNG)
+    for (let i = newDeck.length - 1; i > 0; i--) {
+      const randomBuffer = new Uint32Array(1);
+      window.crypto.getRandomValues(randomBuffer);
+      const randomFraction = randomBuffer[0] / (0xffffffff + 1);
+      
+      const j = Math.floor(randomFraction * (i + 1));
+      [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
+    }
+    return newDeck;
   };
 
   const startRound = () => {
