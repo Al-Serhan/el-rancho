@@ -47,6 +47,8 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [npcChat, setNpcChat] = useState<string>('');
   const [honorCue, setHonorCue] = useState<string | null>(null);
   const [showRules, setShowRules] = useState(false);
+  const [canRaise, setCanRaise] = useState(true);
+  const [callAmount, setCallAmount] = useState(0);
   const { playSound } = useSound();
 
   const createDeck = () => {
@@ -88,6 +90,8 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     setGold(prev => prev - bet);
     setInvested(bet);
     setPhase('preflop');
+    setCanRaise(true);
+    setCallAmount(0);
     setMessage('The cards are dealt. Your move.');
     setNpcChat('One-Eyed Mossy: "I\'m in. Let\'s see what you got."');
     playSound('deal');
@@ -98,9 +102,11 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     updatedNpcs: NPC[];
     potChange: number;
     actions: string[];
+    maxBotRaise: number;
   } => {
     let potChange = 0;
     const actions: string[] = [];
+    let maxBotRaise = 0;
 
     const updatedNpcs = currentNpcs.map(npc => {
       if (npc.isFolded) return npc;
@@ -108,8 +114,6 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       const npcAll = [...npc.hand, ...currentCommunity];
       const rank = evaluateHand(npcAll);
       const score = rank.score;
-
-      const rV: Record<Rank, number> = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
 
       // --- FOLD LOGIC ---
       let foldChance = 0;
@@ -124,6 +128,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
 
       if (currentCommunity.length === 0) {
         // Pre-flop logic
+        const rV: Record<Rank, number> = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
         const rank1 = rV[npc.hand[0].rank];
         const rank2 = rV[npc.hand[1].rank];
         const highCard = Math.max(rank1, rank2);
@@ -141,15 +146,25 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         
       } else {
         // Post-flop logic
-        if (npc.personality === 'cowardly') {
-          if (score < 1000000 && !hasDraw) foldChance = 0.55;
-          else if (score < 1050000) foldChance = 0.25;
-        } else if (npc.personality === 'balanced') {
-          if (score < 500000 && !hasDraw) foldChance = 0.35;
-          else if (score < 1000000 && !hasDraw) foldChance = 0.15;
-        } else { // aggressive
-          if (score < 1000000 && !hasDraw) foldChance = 0.25;
-          else foldChance = 0.05;
+        const betToPotRatio = currentBet / (pot + 1);
+        let baseFold = 0;
+        
+        if (score < 1000000) baseFold = 0.6; // High Card
+        else if (score < 1100000) baseFold = 0.3; // Low Pair (2s-10s)
+        else if (score < 2000000) baseFold = 0.1; // High Pair (Js-As)
+        
+        if (npc.personality === 'cowardly') foldChance = baseFold + 0.2;
+        else if (npc.personality === 'balanced') foldChance = baseFold;
+        else foldChance = Math.max(0, baseFold - 0.2); // aggressive
+
+        if (hasDraw) foldChance *= 0.3; // Much less likely to fold with a draw
+
+        // Adjust fold chance if the player makes a huge bet or goes all-in
+        if (currentBet > 100) {
+           foldChance += 0.3; // Big bets scare everyone
+           if (score < 1100000) foldChance += 0.3; // Weak pairs almost always fold to huge bets
+        } else if (betToPotRatio > 0.5) {
+           foldChance += 0.15;
         }
       }
 
@@ -179,6 +194,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       if (Math.random() < raiseChance) {
         const raiseAmt = Math.floor(currentBet * raiseMultiplier);
         potChange += raiseAmt;
+        if (raiseAmt > maxBotRaise) maxBotRaise = raiseAmt;
 
         const isBluff = score < 1000000;
         if (isBluff) {
@@ -196,7 +212,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       return npc;
     });
 
-    return { updatedNpcs, potChange, actions };
+    return { updatedNpcs, potChange, actions, maxBotRaise };
   };
 
   const handleAction = async (action: 'fold' | 'check' | 'call' | 'raise' | 'all-in') => {
@@ -207,19 +223,23 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     }
 
     if (action === 'raise' || action === 'all-in') {
-      const raiseAmt = action === 'all-in' ? gold : bet * 2;
+      const baseRaise = bet * 2;
+      const raiseAmt = action === 'all-in' ? gold : baseRaise + callAmount;
       if (action !== 'all-in' && gold < raiseAmt) return alert('Not enough gold to raise!');
       if (action === 'all-in' && gold <= 0) return alert('You have no gold to go all in!');
       
       setGold(prev => prev - raiseAmt);
       setInvested(prev => prev + raiseAmt);
+      setCallAmount(0); // Player takes the initiative
       
       // NPC response to player's raise — they evaluate whether to fold, call, or re-raise
-      const { updatedNpcs, potChange, actions } = processNpcTurns(npcs, communityCards, raiseAmt);
+      const { updatedNpcs, potChange, actions, maxBotRaise } = processNpcTurns(npcs, communityCards, raiseAmt);
       
       setNpcs(updatedNpcs);
       const activeNpcs = updatedNpcs.filter(n => !n.isFolded);
       setPot(prev => prev + raiseAmt + potChange + (raiseAmt * activeNpcs.length));
+      
+      if (maxBotRaise > 0) setCallAmount(prev => prev + maxBotRaise);
       
       if (activeNpcs.length === 0) {
         setMessage('Everyone folded! The pot is yours.');
@@ -229,14 +249,28 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
 
       const foldCount = updatedNpcs.filter(n => n.isFolded).length - npcs.filter(n => n.isFolded).length;
       const raiseCount = actions.filter(a => a.includes('raises')).length;
+      
+      // If a bot re-raised, the player gets to act again (can raise again)
+      setCanRaise(raiseCount > 0);
+
       let msg = action === 'all-in' ? `You went ALL IN!` : `You raised to ${raiseAmt}!`;
       if (foldCount > 0) msg += ` ${foldCount} folded.`;
       if (raiseCount > 0) msg += ` ${raiseCount} re-raised!`;
-      if (foldCount === 0 && raiseCount === 0) msg += ' Everyone calls.';
+      if (foldCount === 0 && raiseCount === 0) msg += ' Everyone calls. (Check/Call to continue)';
       
       setMessage(msg);
       showNpcAction(actions, updatedNpcs);
       return;
+    }
+
+    if (action === 'check' || action === 'call') {
+      if (callAmount > 0) {
+        if (gold < callAmount) return alert("Not enough gold to call! You must fold or go ALL IN.");
+        setGold(prev => prev - callAmount);
+        setInvested(prev => prev + callAmount);
+        setPot(prev => prev + callAmount);
+        setCallAmount(0);
+      }
     }
 
     // Progress game on Check/Call
@@ -267,11 +301,15 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       return;
     }
     setDeck(newDeck);
+    setCanRaise(true); // Reset raise ability for the new street
+    setCallAmount(0); // Reset outstanding bets for the new street
 
     // NPC turns after community cards are dealt
-    const { updatedNpcs, potChange, actions } = processNpcTurns(npcs, nextCommunity, bet);
+    const { updatedNpcs, potChange, actions, maxBotRaise } = processNpcTurns(npcs, nextCommunity, bet);
     setNpcs(updatedNpcs);
     setPot(prev => prev + potChange);
+    
+    if (maxBotRaise > 0) setCallAmount(prev => prev + maxBotRaise);
 
     const activeNpcs = updatedNpcs.filter(n => !n.isFolded);
     if (activeNpcs.length === 0) {
@@ -633,11 +671,15 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
            ) : (
              <div className="grid grid-cols-2 gap-6 w-full">
                 <button onClick={() => handleAction('fold')} className="btn-pixel bg-rust-800 border-rust-950 text-sand-600 text-sm py-6">FOLD</button>
-                <button onClick={() => handleAction('check')} className="btn-pixel bg-sand-400 text-rust-900 border-sand-600 text-sm py-6 uppercase tracking-widest">
-                   {phase === 'showdown' ? 'SHOWDOWN' : 'CHECK / CALL'}
+                <button onClick={() => handleAction(callAmount > 0 ? 'call' : 'check')} className={`btn-pixel bg-sand-400 text-rust-900 border-sand-600 text-sm py-6 uppercase tracking-widest ${!canRaise ? 'col-span-2' : ''}`}>
+                   {phase === 'showdown' ? 'SHOWDOWN' : (callAmount > 0 ? `CALL (💰 ${callAmount})` : 'CHECK')}
                 </button>
-                <button onClick={() => handleAction('raise')} className="btn-pixel bg-terracotta-400 text-rust-900 border-terracotta-600 text-sm py-6 uppercase tracking-[0.2em] font-bold">RAISE STAKES (x2)</button>
-                <button onClick={() => handleAction('all-in')} className="btn-pixel bg-red-700 text-white border-red-900 text-sm py-6 uppercase tracking-[0.2em] font-bold hover:bg-red-600">ALL IN</button>
+                {canRaise && phase !== 'showdown' && (
+                  <>
+                    <button onClick={() => handleAction('raise')} className="btn-pixel bg-terracotta-400 text-rust-900 border-terracotta-600 text-sm py-6 uppercase tracking-[0.2em] font-bold">RAISE STAKES (x2)</button>
+                    <button onClick={() => handleAction('all-in')} className="btn-pixel bg-red-700 text-white border-red-900 text-sm py-6 uppercase tracking-[0.2em] font-bold hover:bg-red-600">ALL IN</button>
+                  </>
+                )}
              </div>
            )}
         </div>
