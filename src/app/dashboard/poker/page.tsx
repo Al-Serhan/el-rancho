@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
+import Image from 'next/image';
 import PokerTable from '@/components/poker/PokerTable';
 
 export const revalidate = 0;
@@ -19,8 +20,17 @@ export default async function PokerPage() {
     .single();
 
   return (
-    <main className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500 relative">
-      <div className="fixed inset-0 z-[-1] bg-saloon-wood"></div>
+    <main className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500 relative min-h-screen">
+      <div className="fixed inset-0 z-[-1]">
+        <Image 
+          src="/backgrounds/saloon.png" 
+          alt="Saloon Background" 
+          fill 
+          className="object-cover opacity-40 pixelated"
+          unoptimized 
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/80"></div>
+      </div>
       <div className="flex flex-col md:flex-row justify-between items-center border-b-8 border-rust-900 pb-4 gap-4">
         <div>
           <p className="text-terracotta-400 text-xl uppercase mb-1">The Saloon</p>
