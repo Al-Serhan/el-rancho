@@ -100,7 +100,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   };
 
   // --- NPC AI: Decides what each bot does on their turn ---
-  const processNpcTurns = (currentNpcs: NPC[], currentCommunity: Card[], currentBet: number): {
+  const processNpcTurns = (currentNpcs: NPC[], currentCommunity: Card[], currentBet: number, isAllIn = false): {
     updatedNpcs: NPC[];
     potChange: number;
     actions: string[];
@@ -185,20 +185,23 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       }
 
       // --- RAISE LOGIC ---
+      // Bots cannot raise when the player is all-in (no chips left to call a re-raise)
       let raiseChance = 0;
       let raiseMultiplier = 1;
-      
-      if (npc.personality === 'aggressive') {
-        if (category >= 2) { raiseChance = 0.80; raiseMultiplier = Math.random() > 0.4 ? 2 : 1; }
-        else if (category === 1) raiseChance = 0.40;
-        else raiseChance = 0.15; // Bluff raise
-      } else if (npc.personality === 'balanced') {
-        if (category >= 3) { raiseChance = 0.70; raiseMultiplier = Math.random() > 0.6 ? 1.5 : 1; }
-        else if (category >= 2) raiseChance = 0.40;
-        else if (category === 1) raiseChance = 0.15;
-      } else { // cowardly
-        if (category >= 4) raiseChance = 0.50;
-        else if (category >= 2) raiseChance = 0.15;
+
+      if (!isAllIn) {
+        if (npc.personality === 'aggressive') {
+          if (category >= 2) { raiseChance = 0.80; raiseMultiplier = Math.random() > 0.4 ? 2 : 1; }
+          else if (category === 1) raiseChance = 0.40;
+          else raiseChance = 0.15; // Bluff raise
+        } else if (npc.personality === 'balanced') {
+          if (category >= 3) { raiseChance = 0.70; raiseMultiplier = Math.random() > 0.6 ? 1.5 : 1; }
+          else if (category >= 2) raiseChance = 0.40;
+          else if (category === 1) raiseChance = 0.15;
+        } else { // cowardly
+          if (category >= 4) raiseChance = 0.50;
+          else if (category >= 2) raiseChance = 0.15;
+        }
       }
 
       if (Math.random() < raiseChance) {
@@ -248,15 +251,21 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       setInvested(prev => prev + raiseAmt);
       setCallAmount(0); // Player takes the initiative
       
-      // NPC response to player's raise — they evaluate whether to fold, call, or re-raise
-      const { updatedNpcs, potChange, actions, maxBotRaise } = processNpcTurns(npcs, communityCards, raiseAmt);
+      // NPC response to player's ALL IN — bots can only call or fold
+      const { updatedNpcs, potChange, actions, maxBotRaise } = processNpcTurns(npcs, communityCards, raiseAmt, true);
       const callingNpcs = updatedNpcs.filter(n => !n.isFolded);
 
       setNpcs(updatedNpcs);
       // Player's raise + each active NPC calling it + any extra bot raise amounts
       setPot(prev => prev + raiseAmt + (raiseAmt * callingNpcs.length) + potChange);
       
-      if (maxBotRaise > 0) setCallAmount(maxBotRaise);
+      // All-in: no further raises possible, clear callAmount
+      if (action === 'all-in') {
+        setCallAmount(0);
+        setCanRaise(false);
+      } else if (maxBotRaise > 0) {
+        setCallAmount(maxBotRaise);
+      }
       
       if (callingNpcs.length === 0) {
         setMessage('Everyone folded! The pot is yours.');
