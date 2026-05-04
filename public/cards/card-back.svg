@@ -1,9 +1,0 @@
-
-<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="image-rendering: pixelated;">
-  <rect width="100" height="100" fill="none" />
-  
-        <rect x="10" y="10" width="80" height="80" fill="#5C4033" rx="5" />
-        <rect x="20" y="20" width="60" height="60" fill="none" stroke="#D2B48C" stroke-width="4" stroke-dasharray="8 4" />
-        <text x="50" y="55" font-family="Arial" font-size="40" text-anchor="middle" fill="#D2B48C">🌵</text>
-      
-</svg>

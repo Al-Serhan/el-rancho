@@ -11,11 +11,12 @@ export default function Navbar() {
   const { displayGold } = useGold();
 
   const tabs = [
-    { name: 'Home', href: '/dashboard', icon: '🏠' },
-    { name: 'Trades', href: '/dashboard/trades', icon: '🤝' },
-    { name: 'Cards', href: '/dashboard/collection', icon: '🃏' },
-    { name: 'Poker', href: '/dashboard/poker', icon: '🎲' },
-    { name: 'Top', href: '/dashboard/leaderboard', icon: '🥇' },
+    { name: 'Home',   href: '/dashboard',            icon: '🏠' },
+    { name: 'Trades', href: '/dashboard/trades',      icon: '🤝' },
+    { name: 'Cards',  href: '/dashboard/collection',  icon: '🃏' },
+    { name: 'Codex',  href: '/dashboard/codex',       icon: '📚' },
+    { name: 'Poker',  href: '/dashboard/poker',       icon: '🎲' },
+    { name: 'Top',    href: '/dashboard/leaderboard', icon: '🥇' },
   ];
 
   return (

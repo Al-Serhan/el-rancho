@@ -34,7 +34,7 @@ const INITIAL_NPCS: NPC[] = [
   { name: 'AI Silas', avatar: '/avatars/silas.png', personality: 'balanced', hand: [], isFolded: false, phrase: 'Probabilities are... interesting.' }
 ];
 
-export default function PokerTable({ initialGold }: { initialGold: number }) {
+export default function PokerTable({ initialGold, defaultBet = 10 }: { initialGold: number; defaultBet?: number }) {
   const [gold, setGold] = useState(initialGold);
   const [deck, setDeck] = useState<Card[]>([]);
   const [playerHand, setHand] = useState<Card[]>([]);
@@ -42,7 +42,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [npcs, setNpcs] = useState<NPC[]>(INITIAL_NPCS);
   const [phase, setPhase] = useState<'betting' | 'preflop' | 'flop' | 'turn' | 'river' | 'showdown' | 'result'>('betting');
   const [pot, setPot] = useState(0);
-  const [bet, setBet] = useState(10);
+  const [bet, setBet] = useState(defaultBet);
   const [invested, setInvested] = useState(0);
   const [message, setMessage] = useState('Step up to the table, partner.');
   const [npcChat, setNpcChat] = useState<string>('');

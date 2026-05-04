@@ -15,7 +15,7 @@ export default async function LeaderboardPage() {
   // Fetch top 10 players
   const { data: topPlayers } = await supabase
     .from('profiles')
-    .select('username, gold_coins, avatar_url, role')
+    .select('username, gold_coins, honor, avatar_url, role')
     .order('gold_coins', { ascending: false })
     .limit(10);
 
@@ -34,6 +34,7 @@ export default async function LeaderboardPage() {
               <th className="p-6 w-20 text-center">Rank</th>
               <th className="p-6 text-lg">Cowboy</th>
               <th className="p-6 text-lg">Role</th>
+              <th className="p-6 text-center text-lg">Honor</th>
               <th className="p-6 text-right text-lg">Gold</th>
             </tr>
           </thead>
@@ -55,6 +56,15 @@ export default async function LeaderboardPage() {
                   <span className="font-bold text-lg">{player.username || 'Unknown Drifter'}</span>
                 </td>
                 <td className="p-6 text-sm uppercase text-terracotta-400 font-bold tracking-wider">{player.role}</td>
+                <td className="p-6 text-center">
+                  <span className={`font-heading text-xl ${
+                    (player.honor || 0) >= 100 ? 'text-yellow-400' :
+                    (player.honor || 0) >= 70  ? 'text-blue-400' :
+                    (player.honor || 0) >= 40  ? 'text-green-400' :
+                    (player.honor || 0) >= 15  ? 'text-teal-400' :
+                    (player.honor || 0) < 0    ? 'text-red-500'  : 'text-sand-600'
+                  }`}>{player.honor || 0}</span>
+                </td>
                 <td className="p-6 text-right text-sand-300 font-heading text-2xl tracking-tighter">{player.gold_coins}</td>
               </tr>
             ))}

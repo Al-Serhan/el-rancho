@@ -46,7 +46,7 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
           className={`absolute inset-0 backface-hidden panel-pixel !p-4 flex flex-col h-full bg-rust-900 ${rarityClass}`}
           style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
         >
-          <div className="aspect-square bg-rust-900 mb-2 flex items-center justify-center border-4 border-rust-700 relative shrink-0">
+          <div className="aspect-square bg-rust-900 mb-2 flex items-center justify-center border-4 border-rust-700 relative shrink-0 overflow-hidden">
             {imageUrl ? (
               <Image 
                 src={imageUrl} 
@@ -57,6 +57,16 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
               />
             ) : (
               <span className="text-6xl">🃏</span>
+            )}
+            {/* Shimmer sweep for Legendary */}
+            {card.rarity === 'Legendary' && (
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-0 bottom-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-card-shimmer" />
+              </div>
+            )}
+            {/* Subtle sparkle ring for Epic */}
+            {card.rarity === 'Epic' && (
+              <div className="absolute inset-0 rounded-sm pointer-events-none border border-purple-400/20 animate-pulse-slow" />
             )}
             <div className={`absolute bottom-0 left-0 right-0 bg-rust-900/90 p-2 text-lg text-center uppercase border-t-2 border-rust-700 tracking-tighter ${rarityTextClass}`}>
               {card.rarity}
