@@ -52,6 +52,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [callAmount, setCallAmount] = useState(0);
   const [customRaise, setCustomRaise] = useState<string>('');
   const [handsPlayed, setHandsPlayed] = useState(0);
+  const [dealerChat, setDealerChat] = useState('Welcome to the Saloon, partner. Place yer bets.');
   const { playSound } = useSound();
   const { setDisplayGold } = useGold();
 
@@ -59,6 +60,61 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   useEffect(() => {
     setDisplayGold(gold);
   }, [gold, setDisplayGold]);
+
+  const DEALER_DEAL = [
+    'Cards are dealt, partner. May the best hand win.',
+    'Freshly shuffled. Let the chaos begin.',
+    'Eyes on your cards, hands off mine.',
+    'I once dealt to a rattlesnake. It bluffed better than most.',
+    'The cards are out. What happens next is on you.',
+    'Deal done. Now try not to sweat through yer hat.',
+  ];
+  const DEALER_FLOP = [
+    'The Flop! Three cards speak louder than words.',
+    'Flop is out. I\'ve seen men cry at worse.',
+    'Here comes the flop, partner. Hold yer horses.',
+    'Three cards on the felt. The table holds its breath.',
+  ];
+  const DEALER_TURN = [
+    'The Turn. Things are gettin\' real interesting.',
+    'Fourth card down. Sweat all you want, I\'ve seen worse.',
+    'The Turn card speaks. Are you listening?',
+    'One more card changes everything out here, friend.',
+  ];
+  const DEALER_RIVER = [
+    'The River. Last card. Destiny or disaster.',
+    'River\'s out. Make peace with whatever you\'re holding.',
+    'Final card, cowboy. This is the frontier — anything goes.',
+    'The river runs dry. Time to face the music.',
+  ];
+  const DEALER_WIN = [
+    'Hoo-wee! We got ourselves a winner!',
+    'That\'s the stuff legends are made of, right there.',
+    'Nobody saw that comin\'. Except maybe the cards.',
+    'Winner winner, saloon dinner!',
+  ];
+  const DEALER_LOSE = [
+    'Tough luck, friend. The frontier is unforgiving.',
+    'Better luck next hand, partner.',
+    'Even the best cowboys lose one now and then.',
+    'The house doesn\'t always win... but today it did.',
+  ];
+  const DEALER_FOLD = [
+    'Fold accepted. No shame in livin\' to fight another day.',
+    'You folded faster than a wet saddle blanket.',
+    'Discretion is the better part of valor, they say.',
+  ];
+  const DEALER_ALLIN = [
+    'ALL IN! Hearts are poundin\' across the Saloon!',
+    'Everything on the table! This is what poker\'s about!',
+    'The whole stack! Somebody\'s leavin\' rich or broke tonight!',
+  ];
+  const DEALER_SHOWDOWN = [
+    'Showdown! Let\'s see what everyone\'s been hidin\'.',
+    'Cards face up, partner. The truth always comes out.',
+    'The moment of reckoning. Show \'em what you got.',
+  ];
+  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
 
   const createDeck = () => {
     const newDeck: Card[] = [];
@@ -72,7 +128,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       const randomBuffer = new Uint32Array(1);
       window.crypto.getRandomValues(randomBuffer);
       const randomFraction = randomBuffer[0] / (0xffffffff + 1);
-      
+
       const j = Math.floor(randomFraction * (i + 1));
       [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
     }
@@ -81,10 +137,10 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
 
   const startRound = () => {
     if (gold < bet) return alert('Not enough gold!');
-    
+
     const newDeck = createDeck();
     const playerHole = newDeck.splice(0, 2);
-    
+
     const updatedNpcs = INITIAL_NPCS.map(npc => ({
       ...npc,
       hand: newDeck.splice(0, 2),
@@ -103,6 +159,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     setCallAmount(0);
     setCustomRaise('');
     setHandsPlayed(prev => prev + 1);
+    setDealerChat(pick(DEALER_DEAL));
     setMessage('The cards are dealt. Your move.');
     setNpcChat('One-Eyed Mossy: "I\'m in. Let\'s see what you got."');
     playSound('deal');
@@ -157,16 +214,16 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
           if (npc.personality === 'cowardly') foldChance = isTrash ? 0.75 : 0.1;
           else if (npc.personality === 'balanced') foldChance = isTrash ? 0.45 : 0.05;
           else foldChance = isTrash ? 0.2 : 0;
-          
+
         } else {
           // Post-flop logic
           const betToPotRatio = currentBet / (pot + 1);
           let baseFold = 0;
-          
+
           if (category === 0) baseFold = 0.6; // High Card
           else if (category === 1 && mainRank < 11) baseFold = 0.3; // Low Pair (2s-10s)
           else if (category === 1 && mainRank >= 11) baseFold = 0.1; // High Pair (Js-As)
-          
+
           // Bots NEVER fold if they have Two Pair or better!
           if (category < 2) {
             if (npc.personality === 'cowardly') foldChance = baseFold + 0.2;
@@ -177,12 +234,12 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
 
             // Adjust fold chance based strictly on pot odds (betToPotRatio)
             if (betToPotRatio > 0.8) {
-               foldChance += 0.4; // Pot-sized bet or larger scares everyone
-               if (category === 1 && mainRank < 11) foldChance += 0.4; // Weak pairs almost always fold to pot-sized bets
+              foldChance += 0.4; // Pot-sized bet or larger scares everyone
+              if (category === 1 && mainRank < 11) foldChance += 0.4; // Weak pairs almost always fold to pot-sized bets
             } else if (betToPotRatio > 0.4) {
-               foldChance += 0.2; // Half-pot bet
+              foldChance += 0.2; // Half-pot bet
             } else if (betToPotRatio > 0.2) {
-               foldChance += 0.05;
+              foldChance += 0.05;
             }
           }
         }
@@ -243,6 +300,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const handleAction = async (action: 'fold' | 'check' | 'call' | 'raise' | 'all-in', customAmount?: number) => {
     if (action === 'fold') {
       setMessage('You folded. The Saloon takes your ante.');
+      setDealerChat(pick(DEALER_FOLD));
       await resolveShowdown(false, true);
       return;
     }
@@ -251,15 +309,16 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       const baseRaise = bet * 2;
       const minRaise = baseRaise + callAmount;
       const raiseAmt = action === 'all-in' ? gold : (customAmount || minRaise);
-      
+
+      if (action === 'all-in') setDealerChat(pick(DEALER_ALLIN));
       if (action !== 'all-in' && raiseAmt < minRaise) return alert(`Minimum raise is ${minRaise}!`);
       if (action !== 'all-in' && gold < raiseAmt) return alert('Not enough gold to raise that much!');
       if (action === 'all-in' && gold <= 0) return alert('You have no gold to go all in!');
-      
+
       setGold(prev => prev - raiseAmt);
       setInvested(prev => prev + raiseAmt);
       setCallAmount(0); // Player takes the initiative
-      
+
       // NPC response to player's ALL IN — bots can only call or fold
       const { updatedNpcs, potChange, actions, maxBotRaise } = processNpcTurns(npcs, communityCards, raiseAmt, true);
       const callingNpcs = updatedNpcs.filter(n => !n.isFolded);
@@ -267,7 +326,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       setNpcs(updatedNpcs);
       // Player's raise + each active NPC calling it + any extra bot raise amounts
       setPot(prev => prev + raiseAmt + (raiseAmt * callingNpcs.length) + potChange);
-      
+
       // All-in: no further raises possible, clear callAmount
       if (action === 'all-in') {
         setCallAmount(0);
@@ -277,7 +336,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         const remaining = gold - raiseAmt;
         setCallAmount(Math.min(maxBotRaise, Math.max(0, remaining)));
       }
-      
+
       if (callingNpcs.length === 0) {
         setMessage('Everyone folded! The pot is yours.');
         await resolveShowdown(true);
@@ -286,7 +345,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
 
       const foldCount = updatedNpcs.filter(n => n.isFolded).length - npcs.filter(n => n.isFolded).length;
       const raiseCount = actions.filter(a => a.includes('raises')).length;
-      
+
       // If a bot re-raised, the player gets to act again (can raise again)
       // IMPORTANT: Don't overwrite canRaise=false that was set by all-in logic above
       if (action !== 'all-in') {
@@ -297,7 +356,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       if (foldCount > 0) msg += ` ${foldCount} folded.`;
       if (raiseCount > 0) msg += ` ${raiseCount} re-raised!`;
       if (foldCount === 0 && raiseCount === 0) msg += ' Everyone calls. (Check/Call to continue)';
-      
+
       setMessage(msg);
       showNpcAction(actions, updatedNpcs);
       return;
@@ -336,6 +395,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       setDeck(newDeck);
       return;
     } else if (phase === 'showdown') {
+      setDealerChat(pick(DEALER_SHOWDOWN));
       await resolveShowdown();
       setDeck(newDeck);
       return;
@@ -350,7 +410,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     const { updatedNpcs, potChange, actions, maxBotRaise } = processNpcTurns(npcs, nextCommunity, 0);
     setNpcs(updatedNpcs);
     setPot(prev => prev + potChange);
-    
+
     // Replace (not accumulate) the call amount from this street's bot raises
     // Cap at remaining gold so bots can't demand more than the player has
     const remainingGold = gold - (callAmount > 0 ? callAmount : 0);
@@ -367,14 +427,14 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     const foldCount = actions.filter(a => a.includes('folds')).length;
     const raiseCount = actions.filter(a => a.includes('raises')).length;
     let phaseMsg = '';
-    if (nextCommunity.length === 3) phaseMsg = 'The flop is dealt.';
-    else if (nextCommunity.length === 4) phaseMsg = 'The turn is out.';
-    else if (nextCommunity.length === 5) phaseMsg = 'The river has run dry.';
-    
+    if (nextCommunity.length === 3) { phaseMsg = 'The flop is dealt.'; setDealerChat(pick(DEALER_FLOP)); }
+    else if (nextCommunity.length === 4) { phaseMsg = 'The turn is out.'; setDealerChat(pick(DEALER_TURN)); }
+    else if (nextCommunity.length === 5) { phaseMsg = 'The river has run dry.'; setDealerChat(pick(DEALER_RIVER)); }
+
     if (raiseCount > 0) phaseMsg += ` ${raiseCount} bot${raiseCount > 1 ? 's' : ''} raised!`;
     if (foldCount > 0) phaseMsg += ` ${foldCount} folded.`;
     if (raiseCount === 0 && foldCount === 0) phaseMsg += ' What\'s your move?';
-    
+
     setMessage(phaseMsg);
     showNpcAction(actions, updatedNpcs);
   };
@@ -385,11 +445,11 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     const raiseAction = shuffledActions.find(a => a.includes('raises'));
     const foldAction = shuffledActions.find(a => a.includes('folds'));
     const actionToShow = raiseAction || foldAction || shuffledActions[0];
-    
+
     if (!actionToShow) return;
-    
+
     const npc = currentNpcs.find(n => actionToShow.startsWith(n.name));
-    
+
     if (!npc) {
       triggerNpcReaction(currentNpcs);
       return;
@@ -441,14 +501,16 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     } else if (actionToShow.includes('folds')) {
       const foldQuotes: Record<string, string[]> = {
         'aggressive': [
-          'Fine! I fold. But I\'ll be back.',
+          'Fine! I fold. But I\'ll be back to fuck your wife.',
           'This hand ain\'t worth my spit. Fold.',
+          'Imma fold for now, but next time I\'m gonna fuck you, your wife, your mule, and your cousin!'
         ],
         'cowardly': [
-          'Nope. Nope nope nope. I\'m out.',
+          'Nope. Nope nope nope. I\'m fucking OUT.',
           'I fold! I can\'t take the pressure!',
           'My mule needs me alive. I fold.',
-          'I knew I shoulda stayed in bed today.',
+          'I knew I shoulda beat my wife today.',
+          'My asshole can only take so much abuse.',
         ],
         'balanced': [
           'Probability of winning: 3.2%. Folding.',
@@ -467,33 +529,45 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     const activeNpcs = currentNpcs.filter(n => !n.isFolded);
     if (activeNpcs.length === 0) return;
     const npc = activeNpcs[Math.floor(Math.random() * activeNpcs.length)];
-    
+
     let reactions = ['I\'ll stay.', 'Next card, dealer.', 'Hmm.'];
     if (npc.personality === 'aggressive') reactions = [
-      'You trying to buy this pot?', 
-      'I seen better hands in a graveyard!', 
-      'Raise it up, coward!', 
-      'Don\'t blink, kid. I can smell your fear.',
-      'My horse plays better poker than you.',
-      'Are you gonna bet or just sit there lookin\' pretty?'
+      'You trying to buy this pot?',
+      'I seen better hands in a whorehouse!',
+      'Raise it up, pussy!',
+      'Don\'t blink, kid. I can smell your horseshit.',
+      'My johnson plays better poker than you.',
+      'Are you gonna bet or just sit there lookin\' pretty?',
+      'I once bluffed a sheriff outta his badge.',
+      'You call that a raise? My retard grandson bets harder.',
+      'Keep pushin\'. I like it when they push.',
+      'You\'re sweating, asshole. I can tell from here.',
     ];
     if (npc.personality === 'cowardly') reactions = [
-      'I got a bad feeling about this...', 
-      'The desert sun is getting to ya.', 
-      'Is it hot in here? I\'m sweatin\' bullets.', 
+      'I got a bad feeling about this...',
+      'The desert sun is getting to ya.',
+      'Is it hot in here? I\'m sweatin\' bullets.',
       'I\'m just here for the sarsaparilla.',
-      'Please don\'t take all my gold, I got a mule to feed.',
-      'Fold? Me? No, just... resting my eyes.'
+      'Please don\'t take all my gold, How will I pay for the whores?.',
+      'Fold? Me? No, just... resting my eyes.',
+      'I had a dream about losing last night. And here we are.',
+      'My hands are fine. They\'re just jacking the dealer off.',
+      'Maybe I should\'ve stayed at the ranch...',
+      'Is this hand good? I genuinely can\'t tell anymore.',
     ];
     if (npc.personality === 'balanced') reactions = [
-      'Interesting move... statistically unwise, but interesting.', 
-      'Probabilities suggest you are bluffing 87.3% of the time.', 
-      'Show me the next one. My circuits are ready.', 
+      'Interesting move... statistically unwise, but interesting.',
+      'Probabilities suggest you are bluffing 87.3% of the time.',
+      'Show me the next one. My electronic penis is ready.',
       'Fair enough. I have calculated all outcomes.',
       'Your heart rate elevated when you checked. Fascinating.',
-      'Processing bet... Acceptable risk parameter.'
+      'Processing bet... Acceptable risk parameter.',
+      'My model predicts a 64% chance you regret that.',
+      'Curious. An illogical play with a logical outcome.',
+      'I\'ve simulated this hand 4,000 times. Results vary.',
+      'Emotion detected in your betting pattern. Adjusting strategy.',
     ];
-    
+
     setNpcChat(`${npc.name}: "${reactions[Math.floor(Math.random() * reactions.length)]}"`);
   };
 
@@ -508,7 +582,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
 
     let isWinner = false;
     let winningNpc = null;
-    
+
     if (playerFolded) {
       isWinner = false;
       if (npcResults.length > 0) {
@@ -534,12 +608,14 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         }
       } else if (isWinner) {
         setMessage(autoWin ? 'You won! Everyone folded.' : `WINNER! You won with a ${playerRank.label}!`);
+        setDealerChat(pick(DEALER_WIN));
         playSound('win');
         incrementHonor(10);
         setHonorCue('+10 HONOR');
         setTimeout(() => setHonorCue(null), 3000);
       } else {
         setMessage(`LOSE. ${winningNpc?.name} won with a ${winningNpc?.rank.label}.`);
+        setDealerChat(pick(DEALER_LOSE));
         playSound('error');
       }
       setPhase('result');
@@ -555,14 +631,14 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const evaluate5CardHand = (cards: Card[]) => {
     const rV: Record<Rank, number> = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
     const ranks = cards.map(c => rV[c.rank]).sort((a, b) => b - a);
-    
+
     let isFlush = false;
     let isStraight = false;
 
     if (cards.length >= 5) {
       isFlush = cards.every(c => c.suit === cards[0].suit);
       if (ranks[0] - ranks[4] === 4 && new Set(ranks).size === 5) isStraight = true;
-      if (ranks.join(',') === '14,5,4,3,2') { isStraight = true; ranks[0] = 5; ranks[1] = 4; ranks[2] = 3; ranks[3] = 2; ranks[4] = 1; ranks.sort((a,b)=>b-a); }
+      if (ranks.join(',') === '14,5,4,3,2') { isStraight = true; ranks[0] = 5; ranks[1] = 4; ranks[2] = 3; ranks[3] = 2; ranks[4] = 1; ranks.sort((a, b) => b - a); }
     }
 
     const counts: Record<number, number> = {};
@@ -571,7 +647,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
 
     let category = 0;
     let label = 'High Card';
-    
+
     if (isFlush && isStraight) { category = 8; label = 'Straight Flush'; }
     else if (entries[0].count === 4) { category = 7; label = 'Four of a Kind'; }
     else if (entries[0].count === 3 && entries[1]?.count >= 2) { category = 6; label = 'Full House'; }
@@ -582,15 +658,15 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     else if (entries[0].count === 2) { category = 1; label = 'One Pair'; }
 
     const orderedRanks: number[] = [];
-    entries.forEach(e => { for(let i=0; i<e.count; i++) orderedRanks.push(e.rank); });
+    entries.forEach(e => { for (let i = 0; i < e.count; i++) orderedRanks.push(e.rank); });
     while (orderedRanks.length < 5) orderedRanks.push(0);
 
-    const score = category * 10000000000 + 
-                  orderedRanks[0] * 100000000 + 
-                  orderedRanks[1] * 1000000 + 
-                  orderedRanks[2] * 10000 + 
-                  orderedRanks[3] * 100 + 
-                  orderedRanks[4];
+    const score = category * 10000000000 +
+      orderedRanks[0] * 100000000 +
+      orderedRanks[1] * 1000000 +
+      orderedRanks[2] * 10000 +
+      orderedRanks[3] * 100 +
+      orderedRanks[4];
 
     return { score, label, category, mainRank: orderedRanks[0] };
   };
@@ -623,218 +699,212 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto py-6 font-pixel">
-      
-      {/* NPCs Area */}
-      <div className="grid grid-cols-3 gap-4">
-        {npcs.map(npc => (
-          <div key={npc.name} className="flex flex-col items-center space-y-4">
-             <div className="flex flex-col items-center gap-2">
-               <div className={`w-20 h-20 bg-rust-950 border-4 flex items-center justify-center relative shadow-xl transition-all overflow-hidden ${npc.isFolded ? 'opacity-30 grayscale border-rust-900' : 'border-sand-400'}`}>
+    <div className="max-w-7xl mx-auto py-4 px-2 font-pixel space-y-4">
+
+      {/* TOP BAR: Pot + Commentary + Gold */}
+      <div className="flex flex-col sm:flex-row items-stretch gap-3">
+        <div className="panel-pixel bg-rust-950/80 border-sand-500/40 shadow-none flex items-center gap-3 py-2 px-4 shrink-0">
+          <span className="text-2xl">💰</span>
+          <div>
+            <p className="text-xs uppercase tracking-widest text-sand-600">Pot</p>
+            <p className="text-2xl font-heading text-sand-200">{pot}</p>
+          </div>
+        </div>
+        <div className="flex-1 panel-pixel bg-rust-950/50 border-sand-500/20 shadow-none py-2 px-4 flex items-center justify-center">
+          <p className="text-xl font-heading text-terracotta-400 tracking-widest animate-pulse text-center">{message}</p>
+        </div>
+        <div className="panel-pixel bg-rust-950/80 border-sand-500/40 shadow-none flex items-center gap-3 py-2 px-4 shrink-0">
+          <span className="text-2xl">🏅</span>
+          <div>
+            <p className="text-xs uppercase tracking-widest text-sand-600">Your Gold</p>
+            <p className="text-2xl font-heading text-sand-200">{gold}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN GRID: Dealer | Center | Stats */}
+      <div className="grid gap-4" style={{ gridTemplateColumns: '160px 1fr 160px' }}>
+
+        {/* LEFT: Dealer */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-16 h-16 bg-rust-950 border-4 border-terracotta-400 flex items-center justify-center text-4xl shadow-xl">🤠</div>
+          <div className="bg-rust-900 text-sand-400 px-2 py-1 text-xs font-bold uppercase tracking-widest border-2 border-rust-950">Dealer</div>
+          <div className="panel-pixel bg-sand-400 border-sand-600 shadow-none text-rust-900 text-xs italic text-center relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-b-[9px] border-b-sand-400"></div>
+            &quot;{dealerChat}&quot;
+          </div>
+          <div className="w-full mt-2 space-y-1">
+            {(['preflop', 'flop', 'turn', 'river', 'showdown'] as const).map(p => (
+              <div key={p} className={`text-xs uppercase tracking-widest py-0.5 text-center border ${phase === p ? 'border-terracotta-400 text-terracotta-400' : 'border-rust-800 text-rust-800'}`}>{p}</div>
+            ))}
+          </div>
+        </div>
+
+        {/* CENTER */}
+        <div className="space-y-3">
+          {/* NPC Row */}
+          <div className="grid grid-cols-3 gap-2">
+            {npcs.map(npc => (
+              <div key={npc.name} className="flex flex-col items-center space-y-1">
+                <div className={`w-14 h-14 bg-rust-950 border-4 relative overflow-hidden shadow-lg ${npc.isFolded ? 'opacity-30 grayscale border-rust-900' : 'border-sand-400'}`}>
                   <Image src={npc.avatar} alt={npc.name} fill className="pixelated object-cover" unoptimized />
-               </div>
-               <div className="bg-rust-900 text-sand-400 px-4 py-2 text-base font-bold uppercase tracking-widest border-2 border-rust-950 shadow-md">{npc.name}</div>
-             </div>
-             
-             {/* NPC Cards Revealed at result */}
-             {(phase === 'result') && (
-               <div className="flex gap-2">
-                  {npc.hand.map((c, i) => (
-                    <div key={i} style={{ animationDelay: `${i * 150}ms` }} className={`w-10 h-14 bg-white border-2 border-rust-900 rounded flex items-center justify-center text-lg font-bold animate-deal ${npc.isFolded ? 'opacity-50' : 'text-rust-900'}`}>
-                      {c.rank}<span className={getSuitColor(c.suit)}>{c.suit}</span>
-                    </div>
-                  ))}
-               </div>
-             )}
-
-             {npcChat.startsWith(npc.name) && (
-               <div className="panel-pixel py-3 px-4 bg-white text-rust-900 text-base italic shadow-none border-4 border-rust-900 relative max-w-[200px] text-center break-words overflow-hidden">
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[12px] border-b-rust-900"></div>
-                  &quot;{npcChat.split(': "')[1]?.replace('"', '')}&quot;
-               </div>
-             )}
-          </div>
-        ))}
-      </div>
-
-      {/* Table Center */}
-      <div className="panel-pixel bg-green-950/60 border-sand-400 min-h-[300px] flex flex-col items-center justify-center relative space-y-6 shadow-[0_0_150px_rgba(0,0,0,0.9)_inset]">
-        <div className="absolute top-4 left-6 font-heading text-sand-500 opacity-60 uppercase tracking-[0.3em] text-xl">Pot: 💰 {pot}</div>
-        
-        <div className="flex gap-8">
-          {[...Array(5)].map((_, i) => {
-            const card = communityCards[i];
-            // Key on card content so animation only fires when a new card appears, not on every render
-            const cardKey = card ? `${card.rank}${card.suit}` : `empty-${i}`;
-            return (
-              <div key={cardKey} style={{ animationDelay: `${i * 150}ms` }} className={`w-28 h-40 rounded-xl border-4 flex items-center justify-center text-3xl font-bold transition-all shadow-2xl ${card ? 'bg-white text-rust-900 border-sand-200 animate-deal-community scale-105' : 'bg-rust-900/30 border-rust-900 border-dashed scale-95 opacity-20'}`}>
-                {card ? (
-                  <>{card.rank}<span className={getSuitColor(card.suit)}>{card.suit}</span></>
-                ) : ''}
+                </div>
+                <div className="bg-rust-900 text-sand-400 px-1 py-0.5 text-xs font-bold uppercase tracking-wider border border-rust-950 text-center w-full truncate">{npc.name}</div>
+                {phase === 'result' && (
+                  <div className="flex gap-1">
+                    {npc.hand.map((c, i) => (
+                      <div key={i} style={{ animationDelay: `${i * 150}ms` }} className={`w-7 h-10 bg-white border-2 border-rust-900 rounded flex items-center justify-center text-xs font-bold animate-deal ${npc.isFolded ? 'opacity-50' : 'text-rust-900'}`}>
+                        {c.rank}<span className={getSuitColor(c.suit)}>{c.suit}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {npcChat.startsWith(npc.name) && (
+                  <div className="panel-pixel py-1 px-2 bg-white text-rust-900 text-xs italic shadow-none border-2 border-rust-900 relative text-center break-words overflow-hidden w-full">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[7px] border-b-rust-900"></div>
+                    &quot;{npcChat.split(': "')[1]?.replace('"', '')}&quot;
+                  </div>
+                )}
               </div>
-            );
-          })}
-        </div>
-
-        <div className="text-4xl font-heading text-terracotta-400 tracking-[0.2em] animate-pulse text-center px-12 leading-relaxed h-12 flex items-center">
-          {message}
-        </div>
-        {honorCue && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl font-heading text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,1)] z-50 animate-bounce">
-            {honorCue}
+            ))}
           </div>
-        )}
-      </div>
 
-      {/* Player Area */}
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-8 pt-8">
-        
-        <div className="panel-pixel p-6 bg-rust-950/90 border-sand-400 shadow-none text-center space-y-4 shrink-0 min-w-[260px]">
-           <p className="text-lg uppercase text-sand-500 font-bold tracking-[0.2em]">Your Hole Cards</p>
-           <div className="flex gap-4 justify-center">
-              {playerHand.map((card, i) => (
-                // Key on card content so the deal animation only fires when cards are first dealt
-                <div key={`${card.rank}${card.suit}`} style={{ animationDelay: `${i * 200}ms` }} className="w-24 h-36 bg-white border-4 border-rust-900 rounded-xl flex items-center justify-center text-3xl font-bold text-rust-900 animate-deal shadow-2xl hover:scale-110 transition-transform">
-                  {card.rank}<span className={getSuitColor(card.suit)}>{card.suit}</span>
+          {/* Green Felt */}
+          <div className="panel-pixel bg-green-950/70 border-sand-400 flex flex-col items-center py-6 gap-4 shadow-[0_0_60px_rgba(0,0,0,0.7)_inset]">
+            <div className="flex gap-3 flex-wrap justify-center">
+              {[...Array(5)].map((_, i) => {
+                const card = communityCards[i];
+                const cardKey = card ? `${card.rank}${card.suit}` : `empty-${i}`;
+                return (
+                  <div key={cardKey} style={{ animationDelay: `${i * 150}ms` }} className={`w-16 h-24 rounded-lg border-4 flex items-center justify-center text-xl font-bold transition-all shadow-lg ${card ? 'bg-white text-rust-900 border-sand-200 animate-deal-community' : 'bg-rust-900/30 border-rust-900 border-dashed opacity-20'}`}>
+                    {card ? <>{card.rank}<span className={getSuitColor(card.suit)}>{card.suit}</span></> : ''}
+                  </div>
+                );
+              })}
+            </div>
+            {honorCue && (
+              <div className="text-3xl font-heading text-green-400 drop-shadow-[0_0_12px_rgba(74,222,128,1)] animate-bounce">{honorCue}</div>
+            )}
+          </div>
+
+          {/* Player hand + Controls */}
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="panel-pixel bg-rust-950/90 border-sand-400 shadow-none text-center space-y-2 shrink-0">
+              <p className="text-xs uppercase text-sand-500 font-bold tracking-widest">Your Hand</p>
+              <div className="flex gap-2 justify-center">
+                {playerHand.map((card, i) => (
+                  <div key={`${card.rank}${card.suit}`} style={{ animationDelay: `${i * 200}ms` }} className="w-14 h-20 bg-white border-4 border-rust-900 rounded-lg flex items-center justify-center text-xl font-bold text-rust-900 animate-deal shadow-lg hover:scale-110 transition-transform">
+                    {card.rank}<span className={getSuitColor(card.suit)}>{card.suit}</span>
+                  </div>
+                ))}
+                {playerHand.length === 0 && <div className="w-32 h-20 border-4 border-rust-900 border-dashed rounded-lg opacity-10"></div>}
+              </div>
+            </div>
+
+            <div className="flex-1 w-full">
+              {phase === 'betting' ? (
+                <div className="panel-pixel space-y-3 bg-rust-900/50 flex flex-col items-center">
+                  <div className="flex justify-between items-center w-full text-base uppercase font-bold text-sand-500 tracking-widest">
+                    <span>Ante</span><span className="text-sand-200 text-2xl">💰 {bet}</span>
+                  </div>
+                  <div className="flex gap-2 w-full">
+                    {[10, 25, 50, 100].map(val => {
+                      const maxAnte = Math.max(10, Math.floor(gold / 4));
+                      return (
+                        <button key={val} onClick={() => setBet(Math.min(val, maxAnte))} disabled={gold < val}
+                          className={`btn-pixel flex-1 py-2 px-0 disabled:opacity-30 text-base ${bet === Math.min(val, maxAnte) && gold >= val ? 'bg-sand-400 text-rust-950' : 'bg-rust-800'}`}>{val}</button>
+                      );
+                    })}
+                  </div>
+                  {handsPlayed > 0 && (
+                    <div className="flex gap-2 w-full items-center">
+                      <span className="text-sand-500 font-bold uppercase tracking-widest text-xs shrink-0">Custom:</span>
+                      <input type="number" value={bet}
+                        onChange={(e) => { const m = Math.max(10, Math.floor(gold / 4)); setBet(Math.min(m, Math.max(10, parseInt(e.target.value) || 10))); }}
+                        className="bg-rust-950 border-4 border-sand-400 text-white text-center font-pixel text-xl py-1 flex-1" />
+                    </div>
+                  )}
+                  <button onClick={startRound} className="btn-pixel w-full py-3 text-lg tracking-[0.3em] font-heading">TAKE A SEAT</button>
                 </div>
-              ))}
-              {playerHand.length === 0 && <div className="w-56 h-36 border-4 border-rust-900 border-dashed rounded-xl opacity-10"></div>}
-           </div>
+              ) : phase === 'result' ? (
+                <button onClick={() => { setPhase('betting'); setHand([]); setCommunity([]); setMessage('Want to go again?'); setNpcChat(''); setInvested(0); setPot(0); setCanRaise(true); setCallAmount(0); setCustomRaise(''); setBet(prev => Math.min(prev, Math.max(10, Math.floor(gold / 4)))); }}
+                  className="btn-pixel w-full py-3 text-lg tracking-[0.2em] font-heading">PLAY ANOTHER ROUND</button>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 w-full">
+                  <button onClick={() => handleAction('fold')} className="btn-pixel bg-rust-800 border-rust-950 text-sand-600 py-3">FOLD</button>
+                  <button onClick={() => handleAction(callAmount > 0 ? 'call' : 'check')}
+                    className={`btn-pixel bg-sand-400 text-rust-900 border-sand-600 py-3 uppercase tracking-widest ${!canRaise ? 'col-span-2' : ''}`}>
+                    {phase === 'showdown' ? 'SHOWDOWN' : (callAmount > 0 ? `CALL 💰${callAmount}` : 'CHECK')}
+                  </button>
+                  {canRaise && phase !== 'showdown' && (
+                    <div className="col-span-2 grid grid-cols-3 gap-2">
+                      <input type="number" placeholder={`Min:${bet * 2 + callAmount}`} min={bet * 2 + callAmount} max={gold}
+                        value={customRaise} onChange={(e) => setCustomRaise(e.target.value)}
+                        className="bg-rust-950 border-4 border-terracotta-600 text-white text-center font-pixel text-lg placeholder:text-rust-700 placeholder:text-xs py-2" />
+                      <button onClick={() => handleAction('raise', customRaise ? parseInt(customRaise) : undefined)}
+                        className="btn-pixel bg-terracotta-400 text-rust-900 border-terracotta-600 py-3 uppercase font-bold">RAISE</button>
+                      <button onClick={() => handleAction('all-in')}
+                        className="btn-pixel bg-red-700 text-white border-red-900 py-3 uppercase font-bold hover:bg-red-600">ALL IN</button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="flex-1 max-w-2xl w-full">
-           {phase === 'betting' ? (
-             <div className="panel-pixel space-y-10 bg-rust-900/50 flex flex-col items-center">
-                <div className="flex justify-between items-center w-full text-xl uppercase font-bold text-sand-500 tracking-widest">
-                   <span>Initial Ante</span>
-                   <span className="text-sand-200 text-4xl">💰 {bet}</span>
-                </div>
-                <div className="flex gap-4 w-full">
-                   {[10, 25, 50, 100].map(val => {
-                     const maxAnte = Math.max(10, Math.floor(gold / 4));
-                     const isAffordable = gold >= val;
-                     return (
-                       <button
-                         key={val}
-                         onClick={() => setBet(Math.min(val, maxAnte))}
-                         disabled={!isAffordable}
-                         className={`btn-pixel flex-1 py-5 px-0 disabled:opacity-30 ${bet === Math.min(val, maxAnte) && isAffordable ? 'bg-sand-400 text-rust-950' : 'bg-rust-800'}`}
-                       >{val}</button>
-                     );
-                   })}
-                </div>
-                {handsPlayed > 0 && (
-                  <div className="flex gap-4 w-full items-center justify-between">
-                     <span className="text-sand-500 font-bold uppercase tracking-widest text-lg">Custom Ante:</span>
-                     <input
-                       type="number"
-                       value={bet}
-                       onChange={(e) => {
-                         const maxAnte = Math.max(10, Math.floor(gold / 4));
-                         const val = parseInt(e.target.value) || 10;
-                         setBet(Math.min(maxAnte, Math.max(10, val)));
-                       }}
-                       className="bg-rust-950 border-4 border-sand-400 text-white text-center font-pixel text-3xl py-2 w-1/2"
-                     />
-                  </div>
-                )}
-                <button onClick={startRound} className="btn-pixel w-full py-8 text-3xl tracking-[0.4em] font-heading">TAKE A SEAT</button>
-             </div>
-            ) : phase === 'result' ? (
-              <button onClick={() => {
-                setPhase('betting');
-                setHand([]);
-                setCommunity([]);
-                setMessage('Want to go again?');
-                setNpcChat('');
-                setInvested(0);
-                setPot(0);
-                setCanRaise(true);
-                setCallAmount(0);
-                setCustomRaise('');
-                setBet(prev => Math.min(prev, Math.max(10, Math.floor(gold / 4))));
-              }} className="btn-pixel w-full py-4 text-2xl tracking-[0.3em] font-heading">PLAY ANOTHER ROUND</button>
-           ) : (
-             <div className="grid grid-cols-2 gap-3 w-full">
-                <button onClick={() => handleAction('fold')} className="btn-pixel bg-rust-800 border-rust-950 text-sand-600 py-4">FOLD</button>
-                <button onClick={() => handleAction(callAmount > 0 ? 'call' : 'check')} className={`btn-pixel bg-sand-400 text-rust-900 border-sand-600 py-4 uppercase tracking-widest ${!canRaise ? 'col-span-2' : ''}`}>
-                   {phase === 'showdown' ? 'SHOWDOWN' : (callAmount > 0 ? `CALL (💰 ${callAmount})` : 'CHECK')}
-                </button>
-                {canRaise && phase !== 'showdown' && (
-                  <div className="col-span-2 grid grid-cols-3 gap-3">
-                    <input 
-                      type="number" 
-                      placeholder={`Min: ${bet * 2 + callAmount}`}
-                      min={bet * 2 + callAmount}
-                      max={gold}
-                      value={customRaise}
-                      onChange={(e) => setCustomRaise(e.target.value)}
-                      className="bg-rust-950 border-4 border-terracotta-600 text-white text-center font-pixel text-2xl placeholder:text-rust-800 placeholder:text-sm py-2"
-                    />
-                    <button 
-                      onClick={() => handleAction('raise', customRaise ? parseInt(customRaise) : undefined)} 
-                      className="btn-pixel bg-terracotta-400 text-rust-900 border-terracotta-600 py-4 uppercase font-bold"
-                    >
-                      RAISE
-                    </button>
-                    <button onClick={() => handleAction('all-in')} className="btn-pixel bg-red-700 text-white border-red-900 py-4 uppercase font-bold hover:bg-red-600">ALL IN</button>
-                  </div>
-                )}
-             </div>
-           )}
+        {/* RIGHT: Stats */}
+        <div className="flex flex-col gap-3">
+          <div className="panel-pixel bg-rust-950/80 border-sand-500/40 shadow-none space-y-2">
+            <p className="text-xs uppercase tracking-widest text-sand-600 border-b border-rust-800 pb-1">Stats</p>
+            <div className="flex justify-between text-xs"><span className="text-sand-600">Hands</span><span className="text-sand-300">{handsPlayed}</span></div>
+            <div className="flex justify-between text-xs"><span className="text-sand-600">Invested</span><span className="text-sand-300">💰{invested}</span></div>
+            <div className="flex justify-between text-xs"><span className="text-sand-600">Alive</span><span className="text-sand-300">{npcs.filter(n => !n.isFolded).length}/3</span></div>
+            {callAmount > 0 && <div className="text-terracotta-400 text-xs uppercase text-center animate-pulse border border-terracotta-600 py-1">Call: 💰{callAmount}</div>}
+          </div>
+          <div className="panel-pixel bg-rust-950/80 border-sand-500/40 shadow-none space-y-0.5">
+            <p className="text-xs uppercase tracking-widest text-sand-600 border-b border-rust-800 pb-1 mb-1">Hands</p>
+            {['Str. Flush', 'Four Kind', 'Full House', 'Flush', 'Straight', 'Three Kind', 'Two Pair', 'One Pair', 'High Card'].map(h => (
+              <p key={h} className="text-xs text-sand-700 leading-tight">{h}</p>
+            ))}
+          </div>
+          <button onClick={() => setShowRules(true)} className="btn-pixel bg-sand-400 text-rust-900 w-full py-2 text-sm">📖 RULES</button>
         </div>
 
       </div>
 
-      {/* Rules Button */}
-      <button 
-        onClick={() => setShowRules(true)}
-        className="fixed right-4 top-1/2 -translate-y-1/2 btn-pixel bg-sand-400 text-rust-900 rotate-90 origin-right py-2 px-4 text-sm z-40 shadow-lg whitespace-nowrap"
-      >
-        POKER RULES
-      </button>
-
-      {/* Rules Modal */}
       {showRules && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div className="panel-pixel bg-rust-950 border-sand-400 max-w-2xl w-full max-h-[80vh] overflow-y-auto relative p-8">
-            <button 
-              onClick={() => setShowRules(false)}
-              className="absolute top-4 right-4 text-sand-500 hover:text-white text-2xl font-bold"
-            >
-              ×
-            </button>
+            <button onClick={() => setShowRules(false)} className="absolute top-4 right-4 text-sand-500 hover:text-white text-2xl font-bold">×</button>
             <h2 className="text-3xl font-heading text-terracotta-400 mb-6 tracking-widest text-center">Poker Rules</h2>
             <div className="space-y-4 text-sand-200 text-sm leading-relaxed">
-              <p>Welcome to El Rancho Texas Hold&apos;em! Here&apos;s how to play:</p>
-              
-              <h3 className="text-xl text-sand-400 mt-6 mb-2 font-heading">The Basics</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>You receive 2 private cards (hole cards).</li>
-                <li>5 community cards are dealt to the center of the table.</li>
-                <li>Make the best 5-card hand using any combination of your cards and community cards.</li>
+              <p>Welcome to El Rancho Texas Hold&apos;em!</p>
+              <h3 className="text-xl text-sand-400 mt-4 mb-2 font-heading">Basics</h3>
+              <ul className="list-disc pl-6 space-y-1">
+                <li>2 private hole cards dealt to you.</li>
+                <li>5 community cards on the table.</li>
+                <li>Best 5-card hand wins.</li>
               </ul>
-
-              <h3 className="text-xl text-sand-400 mt-6 mb-2 font-heading">Hand Rankings (Highest to Lowest)</h3>
+              <h3 className="text-xl text-sand-400 mt-4 mb-2 font-heading">Hand Rankings</h3>
               <ol className="list-decimal pl-6 space-y-1">
-                <li><strong className="text-white">Royal Flush:</strong> A, K, Q, J, 10, all same suit.</li>
-                <li><strong className="text-white">Straight Flush:</strong> Five cards in a sequence, all same suit.</li>
-                <li><strong className="text-white">Four of a Kind:</strong> All four cards of the same rank.</li>
-                <li><strong className="text-white">Full House:</strong> Three of a kind with a pair.</li>
-                <li><strong className="text-white">Flush:</strong> Any five cards of the same suit.</li>
-                <li><strong className="text-white">Straight:</strong> Five cards in a sequence.</li>
-                <li><strong className="text-white">Three of a Kind:</strong> Three cards of the same rank.</li>
-                <li><strong className="text-white">Two Pair:</strong> Two different pairs.</li>
-                <li><strong className="text-white">One Pair:</strong> Two cards of the same rank.</li>
-                <li><strong className="text-white">High Card:</strong> Highest card plays if no other hand is made.</li>
+                <li><strong className="text-white">Straight Flush</strong></li>
+                <li><strong className="text-white">Four of a Kind</strong></li>
+                <li><strong className="text-white">Full House</strong></li>
+                <li><strong className="text-white">Flush</strong></li>
+                <li><strong className="text-white">Straight</strong></li>
+                <li><strong className="text-white">Three of a Kind</strong></li>
+                <li><strong className="text-white">Two Pair</strong></li>
+                <li><strong className="text-white">One Pair</strong></li>
+                <li><strong className="text-white">High Card</strong></li>
               </ol>
-
-              <h3 className="text-xl text-sand-400 mt-6 mb-2 font-heading">Betting Actions</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                <li><strong className="text-white">Fold:</strong> Give up your hand and lose your bets.</li>
-                <li><strong className="text-white">Check:</strong> Pass the action to the next player without betting.</li>
-                <li><strong className="text-white">Call:</strong> Match the current bet.</li>
-                <li><strong className="text-white">Raise:</strong> Increase the current bet.</li>
+              <h3 className="text-xl text-sand-400 mt-4 mb-2 font-heading">Actions</h3>
+              <ul className="list-disc pl-6 space-y-1">
+                <li><strong className="text-white">Fold</strong> – Give up your hand</li>
+                <li><strong className="text-white">Check</strong> – Pass without betting</li>
+                <li><strong className="text-white">Call</strong> – Match the current bet</li>
+                <li><strong className="text-white">Raise</strong> – Increase the bet</li>
+                <li><strong className="text-white">All In</strong> – Bet everything</li>
               </ul>
             </div>
           </div>
