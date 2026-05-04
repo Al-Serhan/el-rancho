@@ -706,7 +706,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         <div className="panel-pixel bg-rust-950/80 border-sand-500/40 shadow-none flex items-center gap-3 py-2 px-4 shrink-0">
           <span className="text-2xl">💰</span>
           <div>
-            <p className="text-xs uppercase tracking-widest text-sand-600">Pot</p>
+            <p className="text-sm uppercase tracking-widest text-sand-600">Pot</p>
             <p className="text-2xl font-heading text-sand-200">{pot}</p>
           </div>
         </div>
@@ -716,26 +716,26 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         <div className="panel-pixel bg-rust-950/80 border-sand-500/40 shadow-none flex items-center gap-3 py-2 px-4 shrink-0">
           <span className="text-2xl">🏅</span>
           <div>
-            <p className="text-xs uppercase tracking-widest text-sand-600">Your Gold</p>
+            <p className="text-sm uppercase tracking-widest text-sand-600">Your Gold</p>
             <p className="text-2xl font-heading text-sand-200">{gold}</p>
           </div>
         </div>
       </div>
 
       {/* MAIN GRID: Dealer | Center | Stats */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: '160px 1fr 160px' }}>
+      <div className="grid gap-4" style={{ gridTemplateColumns: '200px 1fr 200px' }}>
 
         {/* LEFT: Dealer */}
         <div className="flex flex-col items-center gap-2">
           <div className="w-16 h-16 bg-rust-950 border-4 border-terracotta-400 flex items-center justify-center text-4xl shadow-xl">🤠</div>
-          <div className="bg-rust-900 text-sand-400 px-2 py-1 text-xs font-bold uppercase tracking-widest border-2 border-rust-950">Dealer</div>
-          <div className="panel-pixel bg-sand-400 border-sand-600 shadow-none text-rust-900 text-xs italic text-center relative">
+          <div className="bg-rust-900 text-sand-400 px-2 py-1 text-sm font-bold uppercase tracking-widest border-2 border-rust-950">Dealer</div>
+          <div className="panel-pixel bg-sand-400 border-sand-600 shadow-none text-rust-900 text-sm italic text-center relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-b-[9px] border-b-sand-400"></div>
             &quot;{dealerChat}&quot;
           </div>
           <div className="w-full mt-2 space-y-1">
             {(['preflop', 'flop', 'turn', 'river', 'showdown'] as const).map(p => (
-              <div key={p} className={`text-xs uppercase tracking-widest py-0.5 text-center border ${phase === p ? 'border-terracotta-400 text-terracotta-400' : 'border-rust-800 text-rust-800'}`}>{p}</div>
+              <div key={p} className={`text-sm uppercase tracking-widest py-1 text-center border ${phase === p ? 'border-terracotta-400 text-terracotta-400' : 'border-rust-800 text-rust-800'}`}>{p}</div>
             ))}
           </div>
         </div>
@@ -749,7 +749,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
                 <div className={`w-14 h-14 bg-rust-950 border-4 relative overflow-hidden shadow-lg ${npc.isFolded ? 'opacity-30 grayscale border-rust-900' : 'border-sand-400'}`}>
                   <Image src={npc.avatar} alt={npc.name} fill className="pixelated object-cover" unoptimized />
                 </div>
-                <div className="bg-rust-900 text-sand-400 px-1 py-0.5 text-xs font-bold uppercase tracking-wider border border-rust-950 text-center w-full truncate">{npc.name}</div>
+                <div className="bg-rust-900 text-sand-400 px-1 py-1 text-sm font-bold uppercase tracking-wider border border-rust-950 text-center w-full truncate">{npc.name}</div>
                 {phase === 'result' && (
                   <div className="flex gap-1">
                     {npc.hand.map((c, i) => (
@@ -760,7 +760,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
                   </div>
                 )}
                 {npcChat.startsWith(npc.name) && (
-                  <div className="panel-pixel py-1 px-2 bg-white text-rust-900 text-xs italic shadow-none border-2 border-rust-900 relative text-center break-words overflow-hidden w-full">
+                  <div className="panel-pixel py-2 px-2 bg-white text-rust-900 text-sm italic shadow-none border-2 border-rust-900 relative text-center break-words overflow-hidden w-full">
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[7px] border-b-rust-900"></div>
                     &quot;{npcChat.split(': "')[1]?.replace('"', '')}&quot;
                   </div>
@@ -790,7 +790,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
           {/* Player hand + Controls */}
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <div className="panel-pixel bg-rust-950/90 border-sand-400 shadow-none text-center space-y-2 shrink-0">
-              <p className="text-xs uppercase text-sand-500 font-bold tracking-widest">Your Hand</p>
+              <p className="text-sm uppercase text-sand-500 font-bold tracking-widest">Your Hand</p>
               <div className="flex gap-2 justify-center">
                 {playerHand.map((card, i) => (
                   <div key={`${card.rank}${card.suit}`} style={{ animationDelay: `${i * 200}ms` }} className="w-14 h-20 bg-white border-4 border-rust-900 rounded-lg flex items-center justify-center text-xl font-bold text-rust-900 animate-deal shadow-lg hover:scale-110 transition-transform">
@@ -818,7 +818,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
                   </div>
                   {handsPlayed > 0 && (
                     <div className="flex gap-2 w-full items-center">
-                      <span className="text-sand-500 font-bold uppercase tracking-widest text-xs shrink-0">Custom:</span>
+                      <span className="text-sand-500 font-bold uppercase tracking-widest text-sm shrink-0">Custom:</span>
                       <input type="number" value={bet}
                         onChange={(e) => { const m = Math.max(10, Math.floor(gold / 4)); setBet(Math.min(m, Math.max(10, parseInt(e.target.value) || 10))); }}
                         className="bg-rust-950 border-4 border-sand-400 text-white text-center font-pixel text-xl py-1 flex-1" />
@@ -856,16 +856,16 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         {/* RIGHT: Stats */}
         <div className="flex flex-col gap-3">
           <div className="panel-pixel bg-rust-950/80 border-sand-500/40 shadow-none space-y-2">
-            <p className="text-xs uppercase tracking-widest text-sand-600 border-b border-rust-800 pb-1">Stats</p>
-            <div className="flex justify-between text-xs"><span className="text-sand-600">Hands</span><span className="text-sand-300">{handsPlayed}</span></div>
-            <div className="flex justify-between text-xs"><span className="text-sand-600">Invested</span><span className="text-sand-300">💰{invested}</span></div>
-            <div className="flex justify-between text-xs"><span className="text-sand-600">Alive</span><span className="text-sand-300">{npcs.filter(n => !n.isFolded).length}/3</span></div>
-            {callAmount > 0 && <div className="text-terracotta-400 text-xs uppercase text-center animate-pulse border border-terracotta-600 py-1">Call: 💰{callAmount}</div>}
+            <p className="text-sm uppercase tracking-widest text-sand-500 font-bold border-b border-rust-800 pb-1">Stats</p>
+            <div className="flex justify-between text-sm"><span className="text-sand-600">Hands</span><span className="text-sand-200 font-bold">{handsPlayed}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-sand-600">Invested</span><span className="text-sand-200 font-bold">💰{invested}</span></div>
+            <div className="flex justify-between text-sm"><span className="text-sand-600">Alive</span><span className="text-sand-200 font-bold">{npcs.filter(n => !n.isFolded).length}/3</span></div>
+            {callAmount > 0 && <div className="text-terracotta-400 text-sm uppercase text-center animate-pulse border border-terracotta-600 py-1 font-bold">Call: 💰{callAmount}</div>}
           </div>
-          <div className="panel-pixel bg-rust-950/80 border-sand-500/40 shadow-none space-y-0.5">
-            <p className="text-xs uppercase tracking-widest text-sand-600 border-b border-rust-800 pb-1 mb-1">Hands</p>
+          <div className="panel-pixel bg-rust-950/80 border-sand-500/40 shadow-none space-y-1">
+            <p className="text-sm uppercase tracking-widest text-sand-500 font-bold border-b border-rust-800 pb-1 mb-1">Hands</p>
             {['Str. Flush', 'Four Kind', 'Full House', 'Flush', 'Straight', 'Three Kind', 'Two Pair', 'One Pair', 'High Card'].map(h => (
-              <p key={h} className="text-xs text-sand-700 leading-tight">{h}</p>
+              <p key={h} className="text-sm text-sand-500 leading-tight">{h}</p>
             ))}
           </div>
           <button onClick={() => setShowRules(true)} className="btn-pixel bg-sand-400 text-rust-900 w-full py-2 text-sm">📖 RULES</button>
@@ -878,7 +878,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
           <div className="panel-pixel bg-rust-950 border-sand-400 max-w-2xl w-full max-h-[80vh] overflow-y-auto relative p-8">
             <button onClick={() => setShowRules(false)} className="absolute top-4 right-4 text-sand-500 hover:text-white text-2xl font-bold">×</button>
             <h2 className="text-3xl font-heading text-terracotta-400 mb-6 tracking-widest text-center">Poker Rules</h2>
-            <div className="space-y-4 text-sand-200 text-sm leading-relaxed">
+            <div className="space-y-4 text-sand-200 text-base leading-relaxed">
               <p>Welcome to El Rancho Texas Hold&apos;em!</p>
               <h3 className="text-xl text-sand-400 mt-4 mb-2 font-heading">Basics</h3>
               <ul className="list-disc pl-6 space-y-1">
