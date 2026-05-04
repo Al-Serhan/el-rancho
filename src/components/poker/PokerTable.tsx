@@ -93,6 +93,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     setPhase('preflop');
     setCanRaise(true);
     setCallAmount(0);
+    setCustomRaise('');
     setMessage('The cards are dealt. Your move.');
     setNpcChat('One-Eyed Mossy: "I\'m in. Let\'s see what you got."');
     playSound('deal');
@@ -201,8 +202,9 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       }
 
       if (Math.random() < raiseChance) {
-        const baseBetForRaise = currentBet > 0 ? currentBet : bet;
-        const raiseAmt = Math.floor(baseBetForRaise * raiseMultiplier);
+        // A raise must exceed the current bet — bot raises by (bet * multiplier) on top of the current bet
+        const baseBet = currentBet > 0 ? currentBet : bet;
+        const raiseAmt = Math.floor(baseBet + baseBet * raiseMultiplier);
         potChange += raiseAmt;
         if (raiseAmt > maxBotRaise) maxBotRaise = raiseAmt;
 
@@ -218,7 +220,8 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       }
 
       // --- CHECK/CALL ---
-      actions.push(`${npc.name} calls.`);
+      // Say "checks" when there is no bet to call, "calls" otherwise
+      actions.push(currentBet > 0 ? `${npc.name} calls.` : `${npc.name} checks.`);
       return npc;
     });
 
@@ -247,14 +250,15 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       
       // NPC response to player's raise — they evaluate whether to fold, call, or re-raise
       const { updatedNpcs, potChange, actions, maxBotRaise } = processNpcTurns(npcs, communityCards, raiseAmt);
-      
+      const callingNpcs = updatedNpcs.filter(n => !n.isFolded);
+
       setNpcs(updatedNpcs);
-      const activeNpcs = updatedNpcs.filter(n => !n.isFolded);
-      setPot(prev => prev + raiseAmt + potChange + (raiseAmt * activeNpcs.length));
+      // Player's raise + each active NPC calling it + any extra bot raise amounts
+      setPot(prev => prev + raiseAmt + (raiseAmt * callingNpcs.length) + potChange);
       
-      if (maxBotRaise > 0) setCallAmount(prev => prev + maxBotRaise);
+      if (maxBotRaise > 0) setCallAmount(maxBotRaise);
       
-      if (activeNpcs.length === 0) {
+      if (callingNpcs.length === 0) {
         setMessage('Everyone folded! The pot is yours.');
         await resolveShowdown(true);
         return;
@@ -631,15 +635,18 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         <div className="absolute top-4 left-6 font-heading text-sand-500 opacity-60 uppercase tracking-[0.3em] text-xl">Pot: 💰 {pot}</div>
         
         <div className="flex gap-8">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} style={{ animationDelay: `${i * 150}ms` }} className={`w-28 h-40 rounded-xl border-4 flex items-center justify-center text-3xl font-bold transition-all shadow-2xl ${communityCards[i] ? 'bg-white text-rust-900 border-sand-200 animate-deal-community scale-105' : 'bg-rust-900/30 border-rust-900 border-dashed scale-95 opacity-20'}`}>
-               {communityCards[i] ? (
-                 <>
-                   {communityCards[i].rank}<span className={getSuitColor(communityCards[i].suit)}>{communityCards[i].suit}</span>
-                 </>
-               ) : ''}
-            </div>
-          ))}
+          {[...Array(5)].map((_, i) => {
+            const card = communityCards[i];
+            // Key on card content so animation only fires when a new card appears, not on every render
+            const cardKey = card ? `${card.rank}${card.suit}` : `empty-${i}`;
+            return (
+              <div key={cardKey} style={{ animationDelay: `${i * 150}ms` }} className={`w-28 h-40 rounded-xl border-4 flex items-center justify-center text-3xl font-bold transition-all shadow-2xl ${card ? 'bg-white text-rust-900 border-sand-200 animate-deal-community scale-105' : 'bg-rust-900/30 border-rust-900 border-dashed scale-95 opacity-20'}`}>
+                {card ? (
+                  <>{card.rank}<span className={getSuitColor(card.suit)}>{card.suit}</span></>
+                ) : ''}
+              </div>
+            );
+          })}
         </div>
 
         <div className="text-4xl font-heading text-terracotta-400 tracking-[0.2em] animate-pulse text-center px-12 leading-relaxed h-12 flex items-center">
@@ -659,7 +666,8 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
            <p className="text-lg uppercase text-sand-500 font-bold tracking-[0.2em]">Your Hole Cards</p>
            <div className="flex gap-4 justify-center">
               {playerHand.map((card, i) => (
-                <div key={i} style={{ animationDelay: `${i * 200}ms` }} className="w-24 h-36 bg-white border-4 border-rust-900 rounded-xl flex items-center justify-center text-3xl font-bold text-rust-900 animate-deal shadow-2xl hover:scale-110 transition-transform">
+                // Key on card content so the deal animation only fires when cards are first dealt
+                <div key={`${card.rank}${card.suit}`} style={{ animationDelay: `${i * 200}ms` }} className="w-24 h-36 bg-white border-4 border-rust-900 rounded-xl flex items-center justify-center text-3xl font-bold text-rust-900 animate-deal shadow-2xl hover:scale-110 transition-transform">
                   {card.rank}<span className={getSuitColor(card.suit)}>{card.suit}</span>
                 </div>
               ))}
