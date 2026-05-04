@@ -1,6 +1,7 @@
 import Navbar from '@/components/trading/Navbar';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
+import { GoldProvider } from '@/context/GoldContext';
 
 export default async function DashboardLayout({
   children,
@@ -20,15 +21,19 @@ export default async function DashboardLayout({
     .eq('id', user.id)
     .single();
 
+  const initialGold = profile?.gold_coins ?? 100;
+
   return (
-    <div className="min-h-screen bg-rust-900 flex flex-col relative">
-      {/* Decorative Desert Floor */}
-      <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-rust-950 to-transparent pointer-events-none z-0"></div>
-      
-      <Navbar gold={profile?.gold_coins ?? 100} />
-      <div className="flex-1 w-full z-10">
-        {children}
+    <GoldProvider initialGold={initialGold}>
+      <div className="min-h-screen bg-rust-900 flex flex-col relative">
+        {/* Decorative Desert Floor */}
+        <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-rust-950 to-transparent pointer-events-none z-0"></div>
+        
+        <Navbar />
+        <div className="flex-1 w-full z-10">
+          {children}
+        </div>
       </div>
-    </div>
+    </GoldProvider>
   );
 }

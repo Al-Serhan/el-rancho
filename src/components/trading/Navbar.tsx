@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSound } from '@/hooks/useSound';
+import { useGold } from '@/context/GoldContext';
 
-export default function Navbar({ gold }: { gold: number }) {
+export default function Navbar() {
   const pathname = usePathname();
   const { isMuted, toggleMute } = useSound();
+  const { displayGold } = useGold();
 
   const tabs = [
     { name: 'Home', href: '/dashboard', icon: '🏠' },
@@ -52,9 +54,9 @@ export default function Navbar({ gold }: { gold: number }) {
             >
               {isMuted ? '🔇' : '🔊'}
             </button>
-            <div className="panel-pixel py-2 px-6 bg-rust-900/50 border-sand-500/30 flex items-center gap-3 shadow-none">
+            <div className="panel-pixel py-2 px-6 bg-rust-900/50 border-sand-500/30 flex items-center gap-3 shadow-none transition-all">
               <span className="text-2xl">💰</span>
-              <span className="font-heading text-sand-300 text-2xl tracking-tighter">{gold}</span>
+              <span className="font-heading text-sand-300 text-2xl tracking-tighter">{displayGold}</span>
             </div>
           </div>
         </div>

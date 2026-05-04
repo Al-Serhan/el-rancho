@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { resolvePokerGame } from '@/app/actions/poker';
 import { incrementHonor } from '@/app/actions/honor';
 
@@ -26,6 +26,7 @@ interface NPC {
 
 import Image from 'next/image';
 import { useSound } from '@/hooks/useSound';
+import { useGold } from '@/context/GoldContext';
 
 const INITIAL_NPCS: NPC[] = [
   { name: 'One-Eyed Mossy', avatar: '/avatars/pete.png', personality: 'aggressive', hand: [], isFolded: false, phrase: 'I seen better hands in a graveyard!' },
@@ -52,6 +53,12 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [customRaise, setCustomRaise] = useState<string>('');
   const [handsPlayed, setHandsPlayed] = useState(0);
   const { playSound } = useSound();
+  const { setDisplayGold } = useGold();
+
+  // Sync local gold to the Navbar counter in real time
+  useEffect(() => {
+    setDisplayGold(gold);
+  }, [gold, setDisplayGold]);
 
   const createDeck = () => {
     const newDeck: Card[] = [];
