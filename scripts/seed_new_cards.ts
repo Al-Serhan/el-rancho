@@ -8,11 +8,46 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function seed() {
   const cards = [
     {
-      name: 'Common squid',
+      name: 'Common Squid',
       rarity: 'Common',
       image_url: '/cards/common_squid.png',
       special_attribute: 'Server Veteran',
-      description: 'Despite the name, this cosmic space fish is an original member of the Discord server. Floats through the cosmos with quiet authority.'
+      description: 'Despite the name, this cosmic space fish is an original member of the Discord server.'
+    },
+    {
+      name: 'Tomahawk',
+      rarity: 'Common',
+      image_url: '/cards/tomahawk.png',
+      special_attribute: 'Frontier Tool',
+      description: 'A sharp, reliable tool for any aspiring farmer or deputy.'
+    },
+    {
+      name: 'Peace Pipe',
+      rarity: 'Uncommon',
+      image_url: '/cards/peace_pipe.png',
+      special_attribute: 'Diplomatic',
+      description: 'Used to settle disputes in the dusty saloons of El Rancho.'
+    },
+    {
+      name: 'Bear Claw',
+      rarity: 'Rare',
+      image_url: '/cards/bear_claw.png',
+      special_attribute: 'Trophy',
+      description: 'A mark of courage, taken from the grizzly peaks of the north.'
+    },
+    {
+      name: 'Desert Falcon',
+      rarity: 'Epic',
+      image_url: '/cards/desert_falcon.png',
+      special_attribute: 'Aerial Sight',
+      description: 'Swift as the desert wind, sharp as a cactus needle.'
+    },
+    {
+      name: 'Sheriff Star',
+      rarity: 'Legendary',
+      image_url: '/cards/sheriff_star.png',
+      special_attribute: 'Law & Order',
+      description: 'The ultimate symbol of authority in these lawless lands.'
     }
   ];
 
