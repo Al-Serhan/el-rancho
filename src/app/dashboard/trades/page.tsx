@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
+import Image from 'next/image';
 import TradeProposer from '@/components/trading/TradeProposer';
 import TradeInbox from '@/components/trading/TradeInbox';
 import Link from 'next/link';
@@ -70,8 +71,17 @@ export default async function TradesPage() {
     .order('created_at', { ascending: false });
 
   return (
-    <main className="max-w-7xl mx-auto p-4 md:p-8 space-y-12 animate-in fade-in duration-500 relative">
-      <div className="fixed inset-0 z-[-1] bg-trading-post"></div>
+    <main className="max-w-7xl mx-auto p-4 md:p-8 space-y-12 animate-in fade-in duration-500 relative min-h-screen">
+      <div className="fixed inset-0 z-[-1]">
+        <Image 
+          src="/backgrounds/trades.png" 
+          alt="Trades Background" 
+          fill 
+          className="object-cover opacity-30 pixelated"
+          unoptimized 
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/80"></div>
+      </div>
       <div className="flex justify-between items-center border-b-8 border-rust-900 pb-4">
         <h1 className="text-4xl font-heading uppercase tracking-tighter text-terracotta-400">The Trading Post</h1>
         <Link href="/dashboard" className="btn-pixel py-3 text-sm">Back to Office</Link>
