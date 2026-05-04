@@ -48,6 +48,27 @@ async function seed() {
       image_url: '/cards/sheriff_star.png',
       special_attribute: 'Law & Order',
       description: 'The ultimate symbol of authority in these lawless lands.'
+    },
+    {
+      name: 'Stolen Gold Ingot',
+      rarity: 'Rare',
+      image_url: '/cards/gold_ingot.png',
+      special_attribute: 'Value +100',
+      description: 'Heavy, shiny, and highly illegal.'
+    },
+    {
+      name: 'Wanted Poster',
+      rarity: 'Rare',
+      image_url: '/cards/wanted_poster.png',
+      special_attribute: 'Bounty +50',
+      description: 'Dead or Alive. Mostly Dead.'
+    },
+    {
+      name: 'Silver Bullet',
+      rarity: 'Rare',
+      image_url: '/cards/silver_bullet.png',
+      special_attribute: 'Werewolf Bane',
+      description: 'Expensive to fire, but essential for the full moon.'
     }
   ];
 
