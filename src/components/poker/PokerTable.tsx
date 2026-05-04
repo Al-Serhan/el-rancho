@@ -648,7 +648,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
              )}
 
              {npcChat.startsWith(npc.name) && (
-               <div className="panel-pixel py-4 px-6 bg-white text-rust-900 text-base italic animate-in fade-in slide-in-from-top duration-500 shadow-none border-4 border-rust-900 relative max-w-[200px] text-center">
+               <div className="panel-pixel py-3 px-4 bg-white text-rust-900 text-base italic shadow-none border-4 border-rust-900 relative max-w-[200px] text-center break-words overflow-hidden">
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[12px] border-b-rust-900"></div>
                   &quot;{npcChat.split(': "')[1]?.replace('"', '')}&quot;
                </div>
@@ -753,15 +753,15 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
                 setCallAmount(0);
                 setCustomRaise('');
                 setBet(prev => Math.min(prev, Math.max(10, Math.floor(gold / 4))));
-              }} className="btn-pixel w-full py-10 text-3xl tracking-[0.3em] font-heading">PLAY ANOTHER ROUND</button>
+              }} className="btn-pixel w-full py-4 text-2xl tracking-[0.3em] font-heading">PLAY ANOTHER ROUND</button>
            ) : (
-             <div className="grid grid-cols-2 gap-6 w-full">
-                <button onClick={() => handleAction('fold')} className="btn-pixel bg-rust-800 border-rust-950 text-sand-600 text-sm py-6">FOLD</button>
-                <button onClick={() => handleAction(callAmount > 0 ? 'call' : 'check')} className={`btn-pixel bg-sand-400 text-rust-900 border-sand-600 text-sm py-6 uppercase tracking-widest ${!canRaise ? 'col-span-2' : ''}`}>
+             <div className="grid grid-cols-2 gap-3 w-full">
+                <button onClick={() => handleAction('fold')} className="btn-pixel bg-rust-800 border-rust-950 text-sand-600 py-4">FOLD</button>
+                <button onClick={() => handleAction(callAmount > 0 ? 'call' : 'check')} className={`btn-pixel bg-sand-400 text-rust-900 border-sand-600 py-4 uppercase tracking-widest ${!canRaise ? 'col-span-2' : ''}`}>
                    {phase === 'showdown' ? 'SHOWDOWN' : (callAmount > 0 ? `CALL (💰 ${callAmount})` : 'CHECK')}
                 </button>
                 {canRaise && phase !== 'showdown' && (
-                  <div className="col-span-2 grid grid-cols-3 gap-6">
+                  <div className="col-span-2 grid grid-cols-3 gap-3">
                     <input 
                       type="number" 
                       placeholder={`Min: ${bet * 2 + callAmount}`}
@@ -769,15 +769,15 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
                       max={gold}
                       value={customRaise}
                       onChange={(e) => setCustomRaise(e.target.value)}
-                      className="bg-rust-950 border-4 border-terracotta-600 text-white text-center font-pixel text-3xl placeholder:text-rust-800 placeholder:text-xl"
+                      className="bg-rust-950 border-4 border-terracotta-600 text-white text-center font-pixel text-2xl placeholder:text-rust-800 placeholder:text-sm py-2"
                     />
                     <button 
                       onClick={() => handleAction('raise', customRaise ? parseInt(customRaise) : undefined)} 
-                      className="btn-pixel bg-terracotta-400 text-rust-900 border-terracotta-600 text-sm py-6 uppercase tracking-[0.2em] font-bold"
+                      className="btn-pixel bg-terracotta-400 text-rust-900 border-terracotta-600 py-4 uppercase font-bold"
                     >
                       RAISE
                     </button>
-                    <button onClick={() => handleAction('all-in')} className="btn-pixel bg-red-700 text-white border-red-900 text-sm py-6 uppercase tracking-[0.2em] font-bold hover:bg-red-600">ALL IN</button>
+                    <button onClick={() => handleAction('all-in')} className="btn-pixel bg-red-700 text-white border-red-900 py-4 uppercase font-bold hover:bg-red-600">ALL IN</button>
                   </div>
                 )}
              </div>

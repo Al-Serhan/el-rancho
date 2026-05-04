@@ -28,17 +28,18 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
 
   return (
     <div 
-      className="group perspective-1000 w-full h-[450px] cursor-pointer"
+      className="group perspective-1000 w-full cursor-pointer"
+      style={{ minHeight: '360px', height: 'auto' }}
       onClick={() => {
         setIsFlipped(!isFlipped);
         playSound('flip');
       }}
     >
       <div className={`
-        relative w-full h-full transition-transform duration-700 preserve-3d
+        relative w-full transition-transform duration-700 preserve-3d
         ${isFlipped ? 'rotate-y-180' : ''}
         group-hover:scale-105 group-hover:-translate-y-2
-      `}>
+      `} style={{ minHeight: '360px' }}>
         
         {/* Front of Card */}
         <div 

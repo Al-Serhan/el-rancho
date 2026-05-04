@@ -41,12 +41,12 @@
   }
 
   .btn-pixel {
-    @apply inline-block font-heading text-2xl uppercase px-12 py-8 border-4 border-b-8 border-r-8 border-terracotta-600 bg-terracotta-400 text-rust-900 hover:bg-terracotta-500 hover:border-terracotta-600 active:border-4 active:mt-1 active:ml-1 transition-all;
+    @apply inline-block font-heading text-xl uppercase px-5 py-3 border-4 border-b-8 border-r-8 border-terracotta-600 bg-terracotta-400 text-rust-900 hover:bg-terracotta-500 hover:border-terracotta-600 active:border-4 active:mt-1 active:ml-1 transition-all;
     image-rendering: pixelated;
   }
   
   .panel-pixel {
-    @apply border-4 border-sand-400 bg-rust-800 p-16 shadow-[16px_16px_0_0_theme('color.rust-900')] relative overflow-hidden;
+    @apply border-4 border-sand-400 bg-rust-800 p-6 shadow-[8px_8px_0_0_theme('color.rust-900')] relative overflow-hidden;
   }
 
   .dust-overlay {
