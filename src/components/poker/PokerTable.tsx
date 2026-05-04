@@ -727,7 +727,9 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
 
         {/* LEFT: Dealer */}
         <div className="flex flex-col items-center gap-2">
-          <div className="w-16 h-16 bg-rust-950 border-4 border-terracotta-400 flex items-center justify-center text-4xl shadow-xl">🤠</div>
+          <div className="w-20 h-20 bg-rust-950 border-4 border-terracotta-400 relative overflow-hidden shadow-xl">
+            <Image src="/avatars/dealer.png" alt="Dealer" fill className="pixelated object-cover" unoptimized />
+          </div>
           <div className="bg-rust-900 text-sand-400 px-2 py-1 text-sm font-bold uppercase tracking-widest border-2 border-rust-950">Dealer</div>
           <div className="panel-pixel bg-sand-400 border-sand-600 shadow-none text-rust-900 text-sm italic text-center relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-b-[9px] border-b-sand-400"></div>
