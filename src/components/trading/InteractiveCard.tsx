@@ -9,7 +9,7 @@ interface InteractiveCardProps {
     name: string;
     rarity: string;
     image_url: string | null;
-    special_attribute: string | null;
+    special_attribute?: string | null;
     description: string | null;
   };
   rarityClass: string;
@@ -64,9 +64,6 @@ export default function InteractiveCard({ card, rarityClass, rarityTextClass }: 
           </div>
           <div className="flex-1 flex flex-col justify-center items-center space-y-2 px-1 w-full">
             <h3 className="text-xl text-center font-heading text-sand-200 uppercase tracking-wider leading-tight w-full break-words">{card.name}</h3>
-            <p className={`text-base text-center uppercase tracking-[0.1em] font-bold ${rarityTextClass} w-full break-words`}>
-              {card.special_attribute}
-            </p>
             <div className="pt-2 opacity-40 text-sm uppercase font-bold tracking-widest animate-pulse">
               Click to Flip
             </div>
