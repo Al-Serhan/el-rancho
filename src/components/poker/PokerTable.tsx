@@ -50,6 +50,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
   const [canRaise, setCanRaise] = useState(true);
   const [callAmount, setCallAmount] = useState(0);
   const [customRaise, setCustomRaise] = useState<string>('');
+  const [handsPlayed, setHandsPlayed] = useState(0);
   const { playSound } = useSound();
 
   const createDeck = () => {
@@ -94,6 +95,7 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     setCanRaise(true);
     setCallAmount(0);
     setCustomRaise('');
+    setHandsPlayed(prev => prev + 1);
     setMessage('The cards are dealt. Your move.');
     setNpcChat('One-Eyed Mossy: "I\'m in. Let\'s see what you got."');
     playSound('deal');
@@ -264,7 +266,9 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
         setCallAmount(0);
         setCanRaise(false);
       } else if (maxBotRaise > 0) {
-        setCallAmount(maxBotRaise);
+        // Cap at what the player can actually afford after this raise
+        const remaining = gold - raiseAmt;
+        setCallAmount(Math.min(maxBotRaise, Math.max(0, remaining)));
       }
       
       if (callingNpcs.length === 0) {
@@ -277,7 +281,10 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
       const raiseCount = actions.filter(a => a.includes('raises')).length;
       
       // If a bot re-raised, the player gets to act again (can raise again)
-      setCanRaise(raiseCount > 0);
+      // IMPORTANT: Don't overwrite canRaise=false that was set by all-in logic above
+      if (action !== 'all-in') {
+        setCanRaise(raiseCount > 0);
+      }
 
       let msg = action === 'all-in' ? `You went ALL IN!` : `You raised to ${raiseAmt}!`;
       if (foldCount > 0) msg += ` ${foldCount} folded.`;
@@ -331,12 +338,16 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
     setCallAmount(0); // Reset outstanding bets for the new street
     setCustomRaise(''); // Clear custom raise input
 
-    // NPC turns after community cards are dealt
-    const { updatedNpcs, potChange, actions, maxBotRaise } = processNpcTurns(npcs, nextCommunity, bet);
+    // NPC turns after community cards are dealt — currentBet is 0 because the player checked/called
+    // Bots can spontaneously raise on a new street (betting into player)
+    const { updatedNpcs, potChange, actions, maxBotRaise } = processNpcTurns(npcs, nextCommunity, 0);
     setNpcs(updatedNpcs);
     setPot(prev => prev + potChange);
     
-    if (maxBotRaise > 0) setCallAmount(prev => prev + maxBotRaise);
+    // Replace (not accumulate) the call amount from this street's bot raises
+    // Cap at remaining gold so bots can't demand more than the player has
+    const remainingGold = gold - (callAmount > 0 ? callAmount : 0);
+    if (maxBotRaise > 0) setCallAmount(Math.min(maxBotRaise, remainingGold)); else setCallAmount(0);
 
     const activeNpcs = updatedNpcs.filter(n => !n.isFolded);
     if (activeNpcs.length === 0) {
@@ -692,27 +703,50 @@ export default function PokerTable({ initialGold }: { initialGold: number }) {
                    <span className="text-sand-200 text-4xl">💰 {bet}</span>
                 </div>
                 <div className="flex gap-4 w-full">
-                   {[10, 25, 50, 100].map(val => (
-                     <button key={val} onClick={() => setBet(val)} className={`btn-pixel flex-1 py-5 px-0 ${bet === val ? 'bg-sand-400 text-rust-950' : 'bg-rust-800'}`}>{val}</button>
-                   ))}
+                   {[10, 25, 50, 100].map(val => {
+                     const maxAnte = Math.max(10, Math.floor(gold / 4));
+                     const isAffordable = gold >= val;
+                     return (
+                       <button
+                         key={val}
+                         onClick={() => setBet(Math.min(val, maxAnte))}
+                         disabled={!isAffordable}
+                         className={`btn-pixel flex-1 py-5 px-0 disabled:opacity-30 ${bet === Math.min(val, maxAnte) && isAffordable ? 'bg-sand-400 text-rust-950' : 'bg-rust-800'}`}
+                       >{val}</button>
+                     );
+                   })}
                 </div>
-                <div className="flex gap-4 w-full items-center justify-between">
-                   <span className="text-sand-500 font-bold uppercase tracking-widest text-lg">Custom Bet:</span>
-                   <input 
-                     type="number" 
-                     value={bet}
-                     onChange={(e) => {
-                       const maxAnte = Math.max(10, Math.floor(gold / 4));
-                       const val = parseInt(e.target.value) || 10;
-                       setBet(Math.min(maxAnte, Math.max(10, val)));
-                     }}
-                     className="bg-rust-950 border-4 border-sand-400 text-white text-center font-pixel text-3xl py-2 w-1/2"
-                   />
-                </div>
+                {handsPlayed > 0 && (
+                  <div className="flex gap-4 w-full items-center justify-between">
+                     <span className="text-sand-500 font-bold uppercase tracking-widest text-lg">Custom Ante:</span>
+                     <input
+                       type="number"
+                       value={bet}
+                       onChange={(e) => {
+                         const maxAnte = Math.max(10, Math.floor(gold / 4));
+                         const val = parseInt(e.target.value) || 10;
+                         setBet(Math.min(maxAnte, Math.max(10, val)));
+                       }}
+                       className="bg-rust-950 border-4 border-sand-400 text-white text-center font-pixel text-3xl py-2 w-1/2"
+                     />
+                  </div>
+                )}
                 <button onClick={startRound} className="btn-pixel w-full py-8 text-3xl tracking-[0.4em] font-heading">TAKE A SEAT</button>
              </div>
-           ) : phase === 'result' ? (
-             <button onClick={() => { setPhase('betting'); setHand([]); setCommunity([]); setMessage('Want to go again?'); setNpcChat(''); setInvested(0); }} className="btn-pixel w-full py-10 text-3xl tracking-[0.3em] font-heading">PLAY ANOTHER ROUND</button>
+            ) : phase === 'result' ? (
+              <button onClick={() => {
+                setPhase('betting');
+                setHand([]);
+                setCommunity([]);
+                setMessage('Want to go again?');
+                setNpcChat('');
+                setInvested(0);
+                setPot(0);
+                setCanRaise(true);
+                setCallAmount(0);
+                setCustomRaise('');
+                setBet(prev => Math.min(prev, Math.max(10, Math.floor(gold / 4))));
+              }} className="btn-pixel w-full py-10 text-3xl tracking-[0.3em] font-heading">PLAY ANOTHER ROUND</button>
            ) : (
              <div className="grid grid-cols-2 gap-6 w-full">
                 <button onClick={() => handleAction('fold')} className="btn-pixel bg-rust-800 border-rust-950 text-sand-600 text-sm py-6">FOLD</button>
