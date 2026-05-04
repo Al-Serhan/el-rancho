@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Trade, TradeItem, UserInventory } from '@/types/database';
 
 interface TradeWithDetails extends Trade {
@@ -69,7 +70,12 @@ export default function TradeInbox({
         return (
           <div key={trade.id} className="panel-pixel space-y-4">
             <div className="flex justify-between items-center border-b-2 border-rust-900 pb-2">
-              <span className="text-xl">From: {trade.initiator.username || 'Anonymous'}</span>
+              <Link
+                href={`/dashboard/profile/${trade.initiator_id}`}
+                className="text-xl hover:text-terracotta-400 transition-colors underline underline-offset-2 decoration-sand-600 hover:decoration-terracotta-400"
+              >
+                From: {trade.initiator.username || 'Anonymous'}
+              </Link>
               <span className="text-lg text-terracotta-400">{new Date(trade.created_at).toLocaleDateString()}</span>
             </div>
 
